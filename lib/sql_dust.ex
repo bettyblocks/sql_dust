@@ -1,0 +1,2 @@
+defmodule SqlDust do
+end
