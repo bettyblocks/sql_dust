@@ -1,6 +1,6 @@
 # SqlDust
 
-**TODO: Add description**
+Generate (complex) SQL queries using magical Elixir SqlDust
 
 ## Installation
 
@@ -17,4 +17,3 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
         def application do
           [applications: [:sql_dust]]
         end
-
