@@ -3,7 +3,8 @@ defmodule SqlDustTest do
   doctest SqlDust
 
   @tag token: "from"
-  test "generates a simple SQL query" do
+
+  test "generates a simple SELECT query" do
     assert SqlDust.from("users") == """
       SELECT `u`.*
       FROM users `u`
@@ -11,6 +12,16 @@ defmodule SqlDustTest do
   end
 
   test "respects passed SELECT statements" do
+    assert SqlDust.from("users", %{select: "*"}) == """
+      SELECT *
+      FROM users `u`
+      """
+
+    assert SqlDust.from("users", %{select: ".*"}) == """
+      SELECT `u`.*
+      FROM users `u`
+      """
+
     sql = """
       SELECT `u`.id, `u`.first_name, `u`.last_name
       FROM users `u`

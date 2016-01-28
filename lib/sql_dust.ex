@@ -1,14 +1,13 @@
 defmodule SqlDust do
+  import SqlDust.Utils
+
   @moduledoc """
     SqlDust is a module that generates SQL queries as intuitively as possible.
   """
 
-  @defaults %{select: ".*"}
-
   def from(table, options \\ %{}) do
-    @defaults
+    %{select: ".*", table: table, paths: []}
       |> Map.merge(options)
-      |> Map.merge(%{table: table})
       |> derive_select
       |> derive_from
       |> compose
@@ -19,9 +18,8 @@ defmodule SqlDust do
       |> List.insert_at(-1, options[:select])
       |> List.flatten
       |> Enum.join(", ")
-      |> String.split(", ")
+      |> split_arguments
       |> prepend_alias(options)
-      |> Enum.join(", ")
 
     Dict.put options, :select, select
   end
@@ -34,35 +32,11 @@ defmodule SqlDust do
   end
 
   defp compose(options) do
+    select = Enum.join(options.select, ", ")
+    from = options.from
     """
-    SELECT #{options.select}
-    FROM #{options.from}
+    SELECT #{select}
+    FROM #{from}
     """
-  end
-
-  defp prepend_alias(arg, options) when is_list(arg) do
-    arg
-      |> Enum.map(fn(sql) -> prepend_alias(sql, options) end)
-  end
-
-  defp prepend_alias(sql, options) do
-    "#{path_alias(sql, options)}.#{List.last(String.split(sql, "."))}"
-  end
-
-  defp path_alias(path, options) do
-    sql = path
-      |> String.split(".")
-      |> Enum.slice(0..-2)
-      |> Enum.join(".")
-
-    if sql == "" do
-      sql = String.at(options.table, 0)
-    end
-
-    quote_alias sql
-  end
-
-  defp quote_alias(sql) do
-    "`#{sql}`"
   end
 end
