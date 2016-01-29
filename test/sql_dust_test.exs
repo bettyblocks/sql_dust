@@ -40,4 +40,23 @@ defmodule SqlDustTest do
       FROM users `u`
       """
   end
+
+  test "selecting columns of a 'belongs to' association" do
+    options = %{select: "id, first_name, user_role.name, department.id, department.name"}
+    assert SqlDust.from("users", options) == """
+      SELECT `u`.id, `u`.first_name, `user_role`.name, `department`.id, `department`.name
+      FROM users `u`
+      LEFT JOIN user_roles `user_role` ON `user_role`.id = `u`.user_role_id
+      LEFT JOIN departments `department` ON `department`.id = `u`.department_id
+      """
+  end
+
+  test "selecting columns of a 'has many' association" do
+    options = %{select: "id, first_name, orders.id"}
+    assert SqlDust.from("users", options) == """
+      SELECT `u`.id, `u`.first_name, `orders`.id
+      FROM users `u`
+      LEFT JOIN orders `orders` ON `orders`.user_id = `u`.id
+      """
+  end
 end

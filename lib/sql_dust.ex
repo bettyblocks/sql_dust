@@ -6,37 +6,55 @@ defmodule SqlDust do
   """
 
   def from(table, options \\ %{}) do
-    %{select: ".*", table: table, paths: []}
+    %{
+      select: ".*",
+      from: table,
+      paths: [],
+      joins: %{}
+    }
       |> Map.merge(options)
       |> derive_select
-      |> derive_from
+      |> derive_joins
       |> compose
   end
 
   defp derive_select(options) do
-    select = []
+    {select, options} = []
       |> List.insert_at(-1, options[:select])
       |> List.flatten
       |> Enum.join(", ")
       |> split_arguments
-      |> prepend_alias(options)
+      |> prepend_path_alias(options)
 
     Dict.put options, :select, select
   end
 
-  defp derive_from(options) do
-    table_alias = ""
-      |> path_alias(options)
+  defp derive_joins(options) do
+    joins = options.paths
+      |> Enum.uniq
+      |> Enum.map(fn(path) -> derive_join(path, options) end)
 
-    Dict.put options, :from, "#{options.table} #{table_alias}"
+    Dict.put options, :joins, joins
   end
 
   defp compose(options) do
-    select = Enum.join(options.select, ", ")
-    from = options.from
-    """
-    SELECT #{select}
-    FROM #{from}
-    """
+    sql = [
+      "SELECT #{Enum.join(options.select, ", ")}",
+      "FROM #{options.from} #{quote_alias derive_path_alias(options)}"
+    ]
+
+    sql = Enum.reduce(options.joins, sql, fn(join, sql) ->
+      join_sql = Enum.join([
+        "LEFT JOIN",
+        join.table,
+        "ON",
+        join.primary_key,
+        "=",
+        join.foreign_key
+      ], " ")
+      List.insert_at(sql, -1, join_sql)
+    end)
+
+    "#{Enum.join(sql, "\n")}\n"
   end
 end
