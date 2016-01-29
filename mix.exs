@@ -30,7 +30,8 @@ defmodule SqlDust.Mixfile do
     [
       {:earmark, "~> 0.1", only: :dev},
       {:ex_doc, "~> 0.11", only: :dev},
-      {:inflex, "~> 1.5.0"}
+      {:inflex, "~> 1.5.0"},
+      {:inch_ex, only: :docs}
     ]
   end
 end

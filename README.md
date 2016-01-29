@@ -1,4 +1,4 @@
-# SqlDust [![Build Status](https://travis-ci.org/archan937/sql_dust.svg?branch=master)](https://travis-ci.org/archan937/sql_dust)
+# SqlDust [![Build Status](https://travis-ci.org/archan937/sql_dust.svg?branch=master)](https://travis-ci.org/archan937/sql_dust) [![Inline docs](http://inch-ci.org/github/archan937/sql_dust.svg)](http://inch-ci.org/github/archan937/sql_dust)
 
 Generate (complex) SQL queries using magical Elixir SqlDust
 
