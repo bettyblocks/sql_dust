@@ -59,4 +59,14 @@ defmodule SqlDustTest do
       LEFT JOIN orders `orders` ON `orders`.user_id = `u`.id
       """
   end
+
+  test "selecting columns of a nested 'belongs to' association" do
+    options = %{select: "id, first_name, company.category.name"}
+    assert SqlDust.from("users", options) == """
+      SELECT `u`.id, `u`.first_name, `company.category`.name
+      FROM users `u`
+      LEFT JOIN companies `company` ON `company`.id = `u`.company_id
+      LEFT JOIN categories `company.category` ON `company.category`.id = `company`.category_id
+      """
+  end
 end
