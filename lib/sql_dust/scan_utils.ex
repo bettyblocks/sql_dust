@@ -1,4 +1,4 @@
-defmodule SqlDust.ExcludeUtils do
+defmodule SqlDust.ScanUtils do
 
   def scan_quoted(sql) do
     Regex.scan(~r/(["'])(?:(?=(\\?))\2.)*?\1/, sql)
@@ -14,16 +14,16 @@ defmodule SqlDust.ExcludeUtils do
     Regex.scan(~r/\b\w+\(/, sql)
   end
 
-  def numerize_excluded(sql, excluded) do
-    Enum.reduce(excluded, sql, fn(match, acc) ->
-      index = Enum.find_index(excluded, fn(value) -> value == match end)
+  def numerize_matches(sql, matches) do
+    Enum.reduce(matches, sql, fn(match, acc) ->
+      index = Enum.find_index(matches, fn(value) -> value == match end)
       String.replace(acc, match, "{#{index + 1}}")
     end)
   end
 
-  def interpolate_excluded(sql, excluded) do
-    Enum.reduce(excluded, sql, fn(match, acc) ->
-      index = Enum.find_index(excluded, fn(value) -> value == match end)
+  def interpolate_matches(sql, matches) do
+    Enum.reduce(matches, sql, fn(match, acc) ->
+      index = Enum.find_index(matches, fn(value) -> value == match end)
       String.replace(acc, "{#{index + 1}}", match)
     end)
   end

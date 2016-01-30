@@ -1,5 +1,5 @@
 defmodule SqlDust.PathUtils do
-  import SqlDust.ExcludeUtils
+  import SqlDust.ScanUtils
 
   def prepend_path_aliases(sql, options) when sql == "*" do
     {sql, options}
@@ -12,10 +12,10 @@ defmodule SqlDust.PathUtils do
       |> List.flatten
       |> Enum.uniq
 
-    sql = numerize_excluded(sql, excluded)
+    sql = numerize_matches(sql, excluded)
     {sql, options} = scan_and_prepend_path_aliases(sql, options)
 
-    sql = interpolate_excluded(sql, excluded)
+    sql = interpolate_matches(sql, excluded)
     {sql, options}
   end
 
