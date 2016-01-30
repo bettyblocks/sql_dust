@@ -1,5 +1,6 @@
 defmodule SqlDust do
-  import SqlDust.Utils
+  import SqlDust.PathUtils
+  import SqlDust.JoinUtils
 
   @moduledoc """
     SqlDust is a module that generates SQL queries as intuitively as possible.
@@ -8,12 +9,13 @@ defmodule SqlDust do
   def from(table, options \\ %{}) do
     %{
       select: ".*",
-      from: table,
+      table: table,
       paths: [],
       joins: %{}
     }
       |> Map.merge(options)
       |> derive_select
+      |> derive_from
       |> derive_joins
       |> compose
   end
@@ -23,10 +25,15 @@ defmodule SqlDust do
       |> List.insert_at(-1, options[:select])
       |> List.flatten
       |> Enum.join(", ")
-      |> split_arguments
-      |> prepend_path_alias(options)
+      |> prepend_path_aliases(options)
 
-    Dict.put options, :select, select
+    Dict.put options, :select, "SELECT #{select}"
+  end
+
+  defp derive_from(options) do
+    from = "#{options.table} #{derive_quoted_path_alias(options)}"
+
+    Dict.put options, :from, "FROM #{from}"
   end
 
   defp derive_joins(options) do
@@ -38,23 +45,13 @@ defmodule SqlDust do
   end
 
   defp compose(options) do
-    sql = [
-      "SELECT #{Enum.join(options.select, ", ")}",
-      "FROM #{options.from} #{quote_alias derive_path_alias(options)}"
+    [
+      options.select,
+      options.from,
+      options.joins,
+      ""
     ]
-
-    sql = Enum.reduce(options.joins, sql, fn(join, sql) ->
-      join_sql = Enum.join([
-        "LEFT JOIN",
-        join.table,
-        "ON",
-        join.primary_key,
-        "=",
-        join.foreign_key
-      ], " ")
-      List.insert_at(sql, -1, join_sql)
-    end)
-
-    "#{Enum.join(sql, "\n")}\n"
+      |> List.flatten
+      |> Enum.join("\n")
   end
 end

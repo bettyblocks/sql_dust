@@ -2,8 +2,6 @@ defmodule SqlDustTest do
   use ExUnit.Case
   doctest SqlDust
 
-  @tag token: "from"
-
   test "only passing table" do
     assert SqlDust.from("users") == """
       SELECT `u`.*
@@ -67,6 +65,23 @@ defmodule SqlDustTest do
       FROM users `u`
       LEFT JOIN companies `company` ON `company`.id = `u`.company_id
       LEFT JOIN categories `company.category` ON `company.category`.id = `company`.category_id
+      """
+  end
+
+  test "using functions" do
+    options = %{select: "id, first_name, MIN(orders.id), MAX(orders.id)"}
+    assert SqlDust.from("users", options) == """
+      SELECT `u`.id, `u`.first_name, MIN(`orders`.id), MAX(`orders`.id)
+      FROM users `u`
+      LEFT JOIN orders `orders` ON `orders`.user_id = `u`.id
+      """
+  end
+
+  test "using quoted arguments" do
+    options = %{select: "id, CONCAT(\"First name: '\", first_name, \"' Last name: '\", last_name, \"'\"), DATE_FORMAT(updated_at, '%d-%m-%Y')"}
+    assert SqlDust.from("users", options) == """
+      SELECT `u`.id, CONCAT("First name: '", `u`.first_name, "' Last name: '", `u`.last_name, "'"), DATE_FORMAT(`u`.updated_at, '%d-%m-%Y')
+      FROM users `u`
       """
   end
 end
