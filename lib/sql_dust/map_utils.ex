@@ -4,10 +4,6 @@ defmodule SqlDust.MapUtils do
     Map.get(map, key, Map.get(map, String.to_atom(key), default))
   end
 
-  def deep_merge(map1, map2) when is_nil(map2) do
-    deep_merge(map1, %{})
-  end
-
   def deep_merge(map1, map2) do
     Map.keys(map1)
       |> Enum.concat(Map.keys(map2))

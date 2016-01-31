@@ -3,10 +3,10 @@ defmodule SqlDust.JoinUtils do
   import SqlDust.PathUtils
 
   def derive_joins(path, options) do
-    {prefix, association, _} = dissect_path(path)
+    {path, association} = dissect_path(path)
 
-    derive_schema(prefix, association, options)
-      |> derive_table_joins(prefix, association, options)
+    derive_schema(path, association, options)
+      |> derive_table_joins(path, association, options)
       |> compose_sql
   end
 
@@ -32,7 +32,7 @@ defmodule SqlDust.JoinUtils do
       end)
 
     defacto_schema(resource, association)
-      |> MapUtils.deep_merge(MapUtils.get(options.schema, resource))
+      |> MapUtils.deep_merge(MapUtils.get(options.schema, resource, %{}))
   end
 
   defp defacto_schema(resource, association \\ nil) do
