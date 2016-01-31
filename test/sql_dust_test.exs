@@ -98,29 +98,20 @@ defmodule SqlDustTest do
       """
   end
 
-  # test "select columns of a 'has and belongs to many' association" do
-  #   options = %{
-  #     select: "id, first_name, last_name, GROUP_CONCAT(skills.name)"
-  #   }
-  #   schema = %{
-  #     "users": %{
-  #       "skills": %{macro: :has_and_belongs_to_many}
-  #     }
-  #   }
-  #   assert SqlDust.from("users", options, schema) == """
-  #     SELECT `u`.id, `u`.first_name, `u`.last_name, GROUP_CONCAT(`skills`.name)
-  #     FROM users `u`
-  #     LEFT JOIN users_skills `skills_bridge_table` ON `skills_bridge_table`.user_id = `u`.id
-  #     LEFT JOIN skills `skills` ON `skills`.id = `skills_bridge_table`.skill_id
-  #     """
-  # end
-  #
-  # test "using simple where statements" do
-  #   options = %{select: ".*", where: "skills.name IN ('elixir', 'hex package')"}
-  #   assert SqlDust.from("users", options) == """
-  #     SELECT `u`.*
-  #     FROM users `u`
-  #     LEFT JOIN skills ''
-  #     """
-  # end
+  test "select columns of a 'has and belongs to many' association" do
+    options = %{
+      select: "id, first_name, last_name, GROUP_CONCAT(skills.name)"
+    }
+    schema = %{
+      "users": %{
+        "skills": %{macro: :has_and_belongs_to_many}
+      }
+    }
+    assert SqlDust.from("users", options, schema) == """
+      SELECT `u`.id, `u`.first_name, `u`.last_name, GROUP_CONCAT(`skills`.name)
+      FROM users `u`
+      LEFT JOIN users_skills `skills_bridge_table` ON `skills_bridge_table`.user_id = `u`.id
+      LEFT JOIN skills `skills` ON `skills`.id = `skills_bridge_table`.skill_id
+      """
+  end
 end

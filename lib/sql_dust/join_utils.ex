@@ -1,4 +1,5 @@
 defmodule SqlDust.JoinUtils do
+  alias SqlDust.MapUtils, as: MapUtils
   import SqlDust.PathUtils
 
   def derive_joins(path, options) do
@@ -24,20 +25,14 @@ defmodule SqlDust.JoinUtils do
     resource = segments
       |> Enum.reduce(options.resource, fn(segment, resource) ->
         options
-          |> Map.get(:schema, %{})
-          |> Map.get(resource, %{})
-          |> Map.get(segment, %{})
-          |> Map.get(:resource, Inflex.pluralize(segment))
+          |> MapUtils.get(:schema, %{})
+          |> MapUtils.get(resource, %{})
+          |> MapUtils.get(segment, %{})
+          |> MapUtils.get(:resource, Inflex.pluralize(segment))
       end)
 
     defacto_schema(resource, association)
-      |> deep_merge(Map.get(options.schema, resource, %{}))
-  end
-
-  defp deep_merge(map1, map2) do
-    Map.merge(map1, map2, fn(key, map1, map2) ->
-      deep_merge Map.get(map1, key), Map.get(map2, key)
-    end)
+      |> MapUtils.deep_merge(MapUtils.get(options.schema, resource))
   end
 
   defp defacto_schema(resource, association \\ nil) do
@@ -60,7 +55,10 @@ defmodule SqlDust.JoinUtils do
   end
 
   defp derive_table_joins(schema1, path, association, options) do
-    schema2 = deep_merge(defacto_schema(Inflex.pluralize(association)), Map.get(options.schema, association, %{}))
+    schema2 = MapUtils.deep_merge(
+      defacto_schema(Inflex.pluralize(association)),
+      MapUtils.get(options.schema, association, %{})
+    )
 
     schema1 = Map.merge(schema1, %{
       path: path,
@@ -73,11 +71,12 @@ defmodule SqlDust.JoinUtils do
     end
 
     schema2 = Map.merge(schema2, %{
+      path: path,
       association: association,
       table_alias: derive_quoted_path_alias(path, options)
     })
 
-    case Map.get(schema1, association).macro do
+    case MapUtils.get(schema1, association).macro do
       :belongs_to -> derive_belongs_to_joins(schema1, schema2)
       :has_many -> derive_has_many_joins(schema1, schema2)
       :has_and_belongs_to_many -> derive_has_and_belongs_to_many_joins(schema1, schema2, options)
@@ -103,7 +102,6 @@ defmodule SqlDust.JoinUtils do
   end
 
   defp derive_has_and_belongs_to_many_joins(schema1, schema2, options) do
-    IO.puts "ASdf"
     [
       %{
         table: "#{schema1.table_name}_#{schema2.table_name}",
