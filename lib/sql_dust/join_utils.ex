@@ -57,9 +57,12 @@ defmodule SqlDust.JoinUtils do
   end
 
   defp derive_has_and_belongs_to_many_joins(schema1, schema2, options) do
+    bridge_table = [schema1.table_name, schema2.table_name]
+      |> Enum.sort
+      |> Enum.join("_")
     [
       %{
-        table: "#{schema1.table_name}_#{schema2.table_name}",
+        table: bridge_table,
         table_alias: derive_quoted_path_alias("#{schema2.path}_bridge_table", options),
         primary_key: "#{derive_quoted_path_alias("#{schema2.path}_bridge_table", options)}.#{Inflex.singularize schema1.resource}_id",
         foreign_key: "#{schema1.table_alias}.id"

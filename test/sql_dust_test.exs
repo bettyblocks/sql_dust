@@ -122,7 +122,7 @@ defmodule SqlDustTest do
     assert SqlDust.from("users", options, schema) == """
       SELECT `u`.id, `u`.first_name, `u`.last_name, GROUP_CONCAT(`skills`.name)
       FROM users `u`
-      LEFT JOIN users_skills `skills_bridge_table` ON `skills_bridge_table`.user_id = `u`.id
+      LEFT JOIN skills_users `skills_bridge_table` ON `skills_bridge_table`.user_id = `u`.id
       LEFT JOIN skills `skills` ON `skills`.id = `skills_bridge_table`.skill_id
       """
   end
