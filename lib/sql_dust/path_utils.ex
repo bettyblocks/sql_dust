@@ -40,7 +40,7 @@ defmodule SqlDust.PathUtils do
     {"#{quote_alias(path_alias)}.#{column}", options}
   end
 
-  def dissect_path(sql, options) do
+  def dissect_path(sql, options \\ %{paths: []}) do
     segments = String.split(sql, ".")
     path = Enum.slice(segments, 0..-2)
     column = List.last(segments)
@@ -63,17 +63,13 @@ defmodule SqlDust.PathUtils do
     end)
   end
 
-  def derive_quoted_path_alias(options) do
-    derive_quoted_path_alias("", options)
-  end
-
   def derive_quoted_path_alias(path, options) do
     quote_alias derive_path_alias(path, options)
   end
 
   defp derive_path_alias(path, options) do
     case path do
-      "" -> String.at(options.table, 0)
+      "" -> String.at(options.resource, 0)
       _ -> path
     end
   end

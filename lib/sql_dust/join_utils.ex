@@ -1,34 +1,57 @@
 defmodule SqlDust.JoinUtils do
   import SqlDust.PathUtils
 
-  def derive_join(path, options) do
-    dissect_path(path, options)
-      |> derive_tables(path)
-      |> derive_keys(options)
+  def derive_joins(path, options) do
+    {prefix, association, _} = dissect_path(path)
+
+    derive_schema(prefix, association, options)
+      |> derive_table_joins(prefix, association, options)
       |> compose_sql
   end
 
-  defp derive_tables({prefix, association, options}, path) do
-    {
-      association,
-      %{
-        table: Inflex.pluralize(association),
-        prefix: prefix,
-        table_alias: derive_quoted_path_alias(path, options),
-        prefix_alias: derive_quoted_path_alias(prefix, options)
-      }
-    }
+  defp derive_schema(path, association, options) when is_bitstring(path) do
+    String.split(path, ".")
+      |> Enum.reduce([], fn(segment, segments) ->
+        case segment do
+          "" -> segments
+          _ -> List.insert_at(segments, -1, segment)
+        end
+      end)
+      |> derive_schema(association, options)
   end
 
-  defp derive_keys({association, join}, options) do
-    case derive_association_type(association) do
-      :belongs_to -> derive_belongs_to_keys(association, join, options)
-      :has_many -> derive_has_many_keys(association, join, options)
+  defp derive_schema(segments, association, options) do
+    resource = segments
+      |> Enum.reduce(options.resource, fn(segment, resource) ->
+        options
+          |> Map.get(:schema, %{})
+          |> Map.get(resource, %{})
+          |> Map.get(segment, %{})
+          |> Map.get(:resource, Inflex.pluralize(segment))
+      end)
+
+    defacto_schema(resource, association)
+      |> deep_merge(Map.get(options.schema, resource, %{}))
+  end
+
+  defp deep_merge(map1, map2) do
+    Map.merge(map1, map2, fn(key, map1, map2) ->
+      deep_merge Map.get(map1, key), Map.get(map2, key)
+    end)
+  end
+
+  defp defacto_schema(resource, association \\ nil) do
+    case association do
+      nil -> %{}
+      _ -> Dict.put(%{}, association, %{
+        macro: derive_macro(association)
+      })
     end
-      |> Map.merge(join)
+      |> Dict.put(:resource, resource)
+      |> Dict.put(:table_name, resource)
   end
 
-  defp derive_association_type(association) do
+  defp derive_macro(association) do
     if Inflex.singularize(association) == association do
       :belongs_to
     else
@@ -36,29 +59,74 @@ defmodule SqlDust.JoinUtils do
     end
   end
 
-  defp derive_belongs_to_keys(association, join, _) do
+  defp derive_table_joins(schema1, path, association, options) do
+    schema2 = deep_merge(defacto_schema(Inflex.pluralize(association)), Map.get(options.schema, association, %{}))
+
+    schema1 = Map.merge(schema1, %{
+      path: path,
+      table_alias: derive_quoted_path_alias(path, options)
+    })
+
+    path = case path do
+      "" -> association
+      _ -> "#{path}.#{association}"
+    end
+
+    schema2 = Map.merge(schema2, %{
+      association: association,
+      table_alias: derive_quoted_path_alias(path, options)
+    })
+
+    case Map.get(schema1, association).macro do
+      :belongs_to -> derive_belongs_to_joins(schema1, schema2)
+      :has_many -> derive_has_many_joins(schema1, schema2)
+      :has_and_belongs_to_many -> derive_has_and_belongs_to_many_joins(schema1, schema2, options)
+    end
+  end
+
+  defp derive_belongs_to_joins(schema1, schema2) do
     %{
-      primary_key: "#{join.table_alias}.id",
-      foreign_key: "#{join.prefix_alias}.#{association}_id",
+      table: schema2.table_name,
+      table_alias: schema2.table_alias,
+      primary_key: "#{schema2.table_alias}.id",
+      foreign_key: "#{schema1.table_alias}.#{schema2.association}_id"
     }
   end
 
-  defp derive_has_many_keys(_, join, options) do
-    association =
-      if join.prefix == "" do
-        Inflex.singularize(options.table)
-      else
-        dissect_path(join.prefix, options)
-          |> Tuple.to_list
-          |> List.at(1)
-      end
+  defp derive_has_many_joins(schema1, schema2) do
     %{
-      primary_key: "#{join.table_alias}.#{association}_id",
-      foreign_key: "#{join.prefix_alias}.id",
+      table: schema2.table_name,
+      table_alias: schema2.table_alias,
+      primary_key: "#{schema2.table_alias}.#{Inflex.singularize schema1.resource}_id",
+      foreign_key: "#{schema1.table_alias}.id"
     }
   end
 
-  defp compose_sql(join) do
-    "LEFT JOIN #{join.table} #{join.table_alias} ON #{join.primary_key} = #{join.foreign_key}"
+  defp derive_has_and_belongs_to_many_joins(schema1, schema2, options) do
+    IO.puts "ASdf"
+    [
+      %{
+        table: "#{schema1.table_name}_#{schema2.table_name}",
+        table_alias: derive_quoted_path_alias("#{schema2.path}_bridge_table", options),
+        primary_key: "#{derive_quoted_path_alias("#{schema2.path}_bridge_table", options)}.#{Inflex.singularize schema1.resource}_id",
+        foreign_key: "#{schema1.table_alias}.id"
+      }, %{
+        table: schema2.table_name,
+        table_alias: schema2.table_alias,
+        primary_key: "#{schema2.table_alias}.id",
+        foreign_key: "#{derive_quoted_path_alias("#{schema2.path}_bridge_table", options)}.#{Inflex.singularize schema2.resource}_id"
+      }
+    ]
+  end
+
+  defp compose_sql(table_joins) when is_map(table_joins) do
+    compose_sql([table_joins])
+  end
+
+  defp compose_sql(table_joins) do
+    table_joins
+      |> Enum.map(fn(join) ->
+        "LEFT JOIN #{join.table} #{join.table_alias} ON #{join.primary_key} = #{join.foreign_key}"
+      end)
   end
 end

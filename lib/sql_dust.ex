@@ -6,18 +6,20 @@ defmodule SqlDust do
     SqlDust is a module that generates SQL queries as intuitively as possible.
   """
 
-  def from(table, options \\ %{}) do
+  def from(resource, options \\ %{}, schema \\ %{}) do
     %{
       select: ".*",
-      table: table,
-      paths: [],
-      joins: %{}
+      resource: resource
     }
       |> Map.merge(options)
+      |> Map.merge(%{
+        paths: [],
+        schema: schema
+      })
       |> derive_select
       |> derive_from
       |> derive_joins
-      |> compose
+      |> compose_sql
   end
 
   defp derive_select(options) do
@@ -31,7 +33,7 @@ defmodule SqlDust do
   end
 
   defp derive_from(options) do
-    from = "#{options.table} #{derive_quoted_path_alias(options)}"
+    from = "#{options.resource} #{derive_quoted_path_alias("", options)}"
 
     Dict.put options, :from, "FROM #{from}"
   end
@@ -39,12 +41,13 @@ defmodule SqlDust do
   defp derive_joins(options) do
     joins = options.paths
       |> Enum.uniq
-      |> Enum.map(fn(path) -> derive_join(path, options) end)
+      |> Enum.map(fn(path) -> derive_joins(path, options) end)
+      |> List.flatten
 
     Dict.put options, :joins, joins
   end
 
-  defp compose(options) do
+  defp compose_sql(options) do
     [
       options.select,
       options.from,
