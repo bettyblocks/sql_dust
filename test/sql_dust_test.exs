@@ -98,6 +98,18 @@ defmodule SqlDustTest do
       """
   end
 
+  test "selecting columns of a nested 'has many' association" do
+    options = %{
+      select: "id, first_name, last_name, GROUP_CONCAT(company.orders.id)"
+    }
+    assert SqlDust.from("users", options) == """
+      SELECT `u`.id, `u`.first_name, `u`.last_name, GROUP_CONCAT(`company.orders`.id)
+      FROM users `u`
+      LEFT JOIN companies `company` ON `company`.id = `u`.company_id
+      LEFT JOIN orders `company.orders` ON `company.orders`.company_id = `company`.id
+      """
+  end
+
   test "select columns of a 'has and belongs to many' association" do
     options = %{
       select: "id, first_name, last_name, GROUP_CONCAT(skills.name)"
@@ -112,6 +124,24 @@ defmodule SqlDustTest do
       FROM users `u`
       LEFT JOIN users_skills `skills_bridge_table` ON `skills_bridge_table`.user_id = `u`.id
       LEFT JOIN skills `skills` ON `skills`.id = `skills_bridge_table`.skill_id
+      """
+  end
+
+  test "select columns of a nested 'has and belongs to many' association" do
+    options = %{
+      select: "id, first_name, last_name, GROUP_CONCAT(company.tags.name)"
+    }
+    schema = %{
+      "companies": %{
+        "tags": %{macro: :has_and_belongs_to_many}
+      }
+    }
+    assert SqlDust.from("users", options, schema) == """
+      SELECT `u`.id, `u`.first_name, `u`.last_name, GROUP_CONCAT(`company.tags`.name)
+      FROM users `u`
+      LEFT JOIN companies `company` ON `company`.id = `u`.company_id
+      LEFT JOIN companies_tags `company.tags_bridge_table` ON `company.tags_bridge_table`.company_id = `company`.id
+      LEFT JOIN tags `company.tags` ON `company.tags`.id = `company.tags_bridge_table`.tag_id
       """
   end
 end
