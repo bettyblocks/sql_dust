@@ -18,7 +18,7 @@ defmodule SqlDust do
       })
 
     options
-      |> Dict.put(:resource, resource_schema(resource, options))
+      |> Map.put(:resource, resource_schema(resource, options))
       |> derive_select
       |> derive_from
       |> derive_joins
@@ -32,13 +32,13 @@ defmodule SqlDust do
       |> Enum.join(", ")
       |> prepend_path_aliases(options)
 
-    Dict.put options, :select, "SELECT #{select}"
+    Map.put options, :select, "SELECT #{select}"
   end
 
   defp derive_from(options) do
     from = "#{options.resource.table_name} #{derive_quoted_path_alias("", options)}"
 
-    Dict.put options, :from, "FROM #{from}"
+    Map.put options, :from, "FROM #{from}"
   end
 
   defp derive_joins(options) do
@@ -47,7 +47,7 @@ defmodule SqlDust do
       |> Enum.map(fn(path) -> derive_joins(path, options) end)
       |> List.flatten
 
-    Dict.put options, :joins, joins
+    Map.put options, :joins, joins
   end
 
   defp compose_sql(options) do

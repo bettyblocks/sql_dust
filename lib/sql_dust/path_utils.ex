@@ -38,7 +38,7 @@ defmodule SqlDust.PathUtils do
 
     if cascade do
       paths = Enum.concat(options[:paths], cascaded_paths(path))
-      options = Dict.put(options, :paths, paths)
+      options = Map.put(options, :paths, paths)
     end
 
     path_alias = derive_path_alias(path, options)

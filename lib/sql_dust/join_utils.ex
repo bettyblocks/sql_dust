@@ -14,12 +14,12 @@ defmodule SqlDust.JoinUtils do
 
   defp derive_table_joins(schema1, path, association, options) do
     schema1 = schema1
-      |> Dict.put(:path, path)
+      |> Map.put(:path, path)
 
     schema2 = MapUtils.get(schema1, association)
       |> MapUtils.get(:resource, Inflex.pluralize(association))
       |> resource_schema(options)
-      |> Dict.put(:path, case path do
+      |> Map.put(:path, case path do
         "" -> association
         _ -> "#{path}.#{association}"
       end)

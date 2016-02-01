@@ -15,7 +15,7 @@ defmodule SqlDust.MapUtils do
           is_map(val1) -> deep_merge(val1, val2 || %{})
           true -> (val2 || val1)
         end
-        Dict.put(map, String.to_atom(key), val)
+        Map.put(map, String.to_atom(key), val)
       end)
   end
 end

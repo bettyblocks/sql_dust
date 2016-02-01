@@ -58,10 +58,10 @@ defmodule SqlDust.SchemaUtils do
         foreign_key: "id"
       }
     end
-      |> Dict.put(:macro, macro)
+      |> Map.put(:macro, macro)
 
     %{}
-      |> Dict.put(association, map)
+      |> Map.put(association, map)
   end
 
   defp derive_macro(association) do
