@@ -110,7 +110,7 @@ defmodule SqlDustTest do
       """
   end
 
-  test "select columns of a 'has and belongs to many' association" do
+  test "selecting columns of a 'has and belongs to many' association" do
     options = %{
       select: "id, first_name, last_name, GROUP_CONCAT(skills.name)"
     }
@@ -127,13 +127,13 @@ defmodule SqlDustTest do
       """
   end
 
-  test "select columns of a nested 'has and belongs to many' association" do
+  test "selecting columns of a nested 'has and belongs to many' association" do
     options = %{
       select: "id, first_name, last_name, GROUP_CONCAT(company.tags.name)"
     }
     schema = %{
       "companies": %{
-        "tags": %{macro: :has_and_belongs_to_many}
+        tags: %{macro: :has_and_belongs_to_many}
       }
     }
     assert SqlDust.from("users", options, schema) == """
@@ -142,6 +142,18 @@ defmodule SqlDustTest do
       LEFT JOIN companies `company` ON `company`.id = `u`.company_id
       LEFT JOIN companies_tags `company.tags_bridge_table` ON `company.tags_bridge_table`.company_id = `company`.id
       LEFT JOIN tags `company.tags` ON `company.tags`.id = `company.tags_bridge_table`.tag_id
+      """
+  end
+
+  test "overriding the resource table name" do
+    schema = %{
+      "resellers": %{
+        "table_name": "companies"
+      }
+    }
+    assert SqlDust.from("resellers", %{}, schema) == """
+      SELECT `r`.*
+      FROM companies `r`
       """
   end
 end

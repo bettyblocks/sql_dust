@@ -51,7 +51,7 @@ defmodule SqlDust.JoinUtils do
     %{
       table: schema2.table_name,
       table_alias: schema2.table_alias,
-      primary_key: "#{schema2.table_alias}.#{Inflex.singularize schema1.resource}_id",
+      primary_key: "#{schema2.table_alias}.#{Inflex.singularize schema1.name}_id",
       foreign_key: "#{schema1.table_alias}.id"
     }
   end
@@ -64,13 +64,13 @@ defmodule SqlDust.JoinUtils do
       %{
         table: bridge_table,
         table_alias: derive_quoted_path_alias("#{schema2.path}_bridge_table", options),
-        primary_key: "#{derive_quoted_path_alias("#{schema2.path}_bridge_table", options)}.#{Inflex.singularize schema1.resource}_id",
+        primary_key: "#{derive_quoted_path_alias("#{schema2.path}_bridge_table", options)}.#{Inflex.singularize schema1.name}_id",
         foreign_key: "#{schema1.table_alias}.id"
       }, %{
         table: schema2.table_name,
         table_alias: schema2.table_alias,
         primary_key: "#{schema2.table_alias}.id",
-        foreign_key: "#{derive_quoted_path_alias("#{schema2.path}_bridge_table", options)}.#{Inflex.singularize schema2.resource}_id"
+        foreign_key: "#{derive_quoted_path_alias("#{schema2.path}_bridge_table", options)}.#{Inflex.singularize schema2.name}_id"
       }
     ]
   end

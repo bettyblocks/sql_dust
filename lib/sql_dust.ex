@@ -1,4 +1,5 @@
 defmodule SqlDust do
+  import SqlDust.SchemaUtils
   import SqlDust.PathUtils
   import SqlDust.JoinUtils
 
@@ -7,15 +8,17 @@ defmodule SqlDust do
   """
 
   def from(resource, options \\ %{}, schema \\ %{}) do
-    %{
-      select: ".*",
-      resource: resource
+    options = %{
+      select: ".*"
     }
       |> Map.merge(options)
       |> Map.merge(%{
         paths: [],
         schema: schema
       })
+
+    options
+      |> Dict.put(:resource, resource_schema(resource, options))
       |> derive_select
       |> derive_from
       |> derive_joins
@@ -33,7 +36,7 @@ defmodule SqlDust do
   end
 
   defp derive_from(options) do
-    from = "#{options.resource} #{derive_quoted_path_alias("", options)}"
+    from = "#{options.resource.table_name} #{derive_quoted_path_alias("", options)}"
 
     Dict.put options, :from, "FROM #{from}"
   end

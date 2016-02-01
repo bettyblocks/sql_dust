@@ -76,7 +76,7 @@ defmodule SqlDust.PathUtils do
 
   defp derive_path_alias(path, options) do
     case path do
-      "" -> String.at(options.resource, 0)
+      "" -> String.at(options.resource.name, 0)
       _ -> path
     end
   end

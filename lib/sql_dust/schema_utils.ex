@@ -1,6 +1,17 @@
 defmodule SqlDust.SchemaUtils do
   alias SqlDust.MapUtils, as: MapUtils
 
+  def resource_schema(resource, options) do
+    resource_schema(resource, nil, options)
+  end
+
+  def resource_schema(resource, association, options) do
+    defacto_schema(resource, association)
+      |> MapUtils.deep_merge(
+        MapUtils.get(options.schema, resource, %{})
+      )
+  end
+
   def derive_schema(path, association, options) when is_bitstring(path) do
     String.split(path, ".")
       |> Enum.reduce([], fn(segment, segments) ->
@@ -12,18 +23,16 @@ defmodule SqlDust.SchemaUtils do
       |> derive_schema(association, options)
   end
 
-  def derive_schema(segments, association, options) do
-    resource = segments
-      |> Enum.reduce(options.resource, fn(segment, resource) ->
+  def derive_schema(path, association, options) do
+    path
+      |> Enum.reduce(options.resource.name, fn(path_segment, resource) ->
         options
           |> MapUtils.get(:schema, %{})
           |> MapUtils.get(resource, %{})
-          |> MapUtils.get(segment, %{})
-          |> MapUtils.get(:resource, Inflex.pluralize(segment))
+          |> MapUtils.get(path_segment, %{})
+          |> MapUtils.get(:resource, Inflex.pluralize(path_segment))
       end)
-
-    defacto_schema(resource, association)
-      |> MapUtils.deep_merge(MapUtils.get(options.schema, resource, %{}))
+      |> resource_schema(association, options)
   end
 
   defp defacto_schema(resource, association) do
@@ -33,7 +42,7 @@ defmodule SqlDust.SchemaUtils do
         macro: derive_macro(association)
       })
     end
-      |> Dict.put(:resource, resource)
+      |> Dict.put(:name, resource)
       |> Dict.put(:table_name, resource)
   end
 
