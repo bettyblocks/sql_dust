@@ -52,18 +52,17 @@ defmodule SqlDust.JoinUtils do
   end
 
   defp derive_has_and_belongs_to_many_joins(schema1, schema2, association) do
-    bridge_table_path = "#{schema2.path}_bridge_table"
     [
       %{
         table: association.bridge_table,
-        path: bridge_table_path,
-        left_key: "#{bridge_table_path}.#{association.foreign_key}",
+        path: "#{schema2.path}_bridge_table",
+        left_key: "#{schema2.path}_bridge_table.#{association.foreign_key}",
         right_key: "#{schema1.path}.#{association.primary_key}"
       }, %{
         table: schema2.table_name,
         path: schema2.path,
         left_key: "#{schema2.path}.#{association.association_primary_key}",
-        right_key: "#{bridge_table_path}.#{association.association_foreign_key}"
+        right_key: "#{schema2.path}_bridge_table.#{association.association_foreign_key}"
       }
     ]
   end
