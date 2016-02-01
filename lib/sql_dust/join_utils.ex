@@ -37,8 +37,8 @@ defmodule SqlDust.JoinUtils do
     %{
       table: schema2.table_name,
       path: schema2.path,
-      primary_key: "#{schema2.path}.#{association.primary_key}",
-      foreign_key: "#{schema1.path}.#{association.foreign_key}"
+      left_key: "#{schema2.path}.#{association.primary_key}",
+      right_key: "#{schema1.path}.#{association.foreign_key}"
     }
   end
 
@@ -46,29 +46,24 @@ defmodule SqlDust.JoinUtils do
     %{
       table: schema2.table_name,
       path: schema2.path,
-      primary_key: "#{schema2.path}.#{association.primary_key}",
-      foreign_key: "#{schema1.path}.#{association.foreign_key}"
+      left_key: "#{schema2.path}.#{association.foreign_key}",
+      right_key: "#{schema1.path}.#{association.primary_key}"
     }
   end
 
-  defp derive_has_and_belongs_to_many_joins(schema1, schema2, _) do
+  defp derive_has_and_belongs_to_many_joins(schema1, schema2, association) do
     bridge_table_path = "#{schema2.path}_bridge_table"
-
-    bridge_table = [schema1.table_name, schema2.table_name]
-      |> Enum.sort
-      |> Enum.join("_")
-
     [
       %{
-        table: bridge_table,
+        table: association.bridge_table,
         path: bridge_table_path,
-        primary_key: "#{bridge_table_path}.#{Inflex.singularize schema1.name}_id",
-        foreign_key: "#{schema1.path}.id"
+        left_key: "#{bridge_table_path}.#{association.foreign_key}",
+        right_key: "#{schema1.path}.#{association.primary_key}"
       }, %{
         table: schema2.table_name,
         path: schema2.path,
-        primary_key: "#{schema2.path}.id",
-        foreign_key: "#{bridge_table_path}.#{Inflex.singularize schema2.name}_id"
+        left_key: "#{schema2.path}.#{association.association_primary_key}",
+        right_key: "#{bridge_table_path}.#{association.association_foreign_key}"
       }
     ]
   end
@@ -80,11 +75,11 @@ defmodule SqlDust.JoinUtils do
   defp compose_sql(table_joins, options) do
     table_joins
       |> Enum.map(fn(join) ->
-        {primary_key, _} = prepend_path_alias(join.primary_key, options)
-        {foreign_key, _} = prepend_path_alias(join.foreign_key, options)
+        {left_key, _} = prepend_path_alias(join.left_key, options)
+        {right_key, _} = prepend_path_alias(join.right_key, options)
         [
           "LEFT JOIN", join.table, derive_quoted_path_alias(join.path, options),
-          "ON", primary_key, "=", foreign_key
+          "ON", left_key, "=", right_key
         ] |> Enum.join(" ")
       end)
   end

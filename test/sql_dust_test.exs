@@ -176,4 +176,25 @@ defmodule SqlDustTest do
       LEFT JOIN users `assignee` ON `assignee`.id = `i`.assignee_id
       """
   end
+
+  test "overriding the bridge table of a has and belongs to many association" do
+    options = %{
+      select: "id, first_name, last_name, GROUP_CONCAT(skills.name)"
+    }
+    schema = %{
+      "users": %{
+        "skills": %{
+          macro: :has_and_belongs_to_many,
+          bridge_table: "skill_set",
+          foreign_key: "person_id"
+        }
+      }
+    }
+    assert SqlDust.from("users", options, schema) == """
+      SELECT `u`.id, `u`.first_name, `u`.last_name, GROUP_CONCAT(`skills`.name)
+      FROM users `u`
+      LEFT JOIN skill_set `skills_bridge_table` ON `skills_bridge_table`.person_id = `u`.id
+      LEFT JOIN skills `skills` ON `skills`.id = `skills_bridge_table`.skill_id
+      """
+  end
 end

@@ -29,33 +29,45 @@ defmodule SqlDust.SchemaUtils do
   end
 
   def resource_schema(resource, association, options) do
-    defacto_schema(resource, association)
-      |> MapUtils.deep_merge(
-        MapUtils.get(options.schema, resource, %{})
-      )
+    schema = MapUtils.get(options.schema, resource, %{})
+    macro = MapUtils.get(MapUtils.get(schema, association, %{}), :macro)
+
+    defacto_schema(resource)
+      |> Map.merge(defacto_association(resource, association, macro))
+      |> MapUtils.deep_merge(schema)
   end
 
-  defp defacto_schema(resource, association) do
+  defp defacto_schema(resource) do
     %{
       name: resource,
       table_name: resource
     }
-      |> Map.merge(defacto_association(resource, association))
   end
 
-  defp defacto_association(_, association) when is_nil(association), do: %{}
+  defp defacto_association(_, association, _) when is_nil(association), do: %{}
 
-  defp defacto_association(resource, association) do
-    macro = derive_macro(association)
+  defp defacto_association(resource, association, macro) do
+    macro = macro || derive_macro(association)
 
     map = case macro do
       :belongs_to -> %{
         primary_key: "id",
         foreign_key: "#{association}_id"
       }
+      :has_one -> %{
+        primary_key: "id",
+        foreign_key: "#{Inflex.singularize(resource)}_id"
+      }
       :has_many -> %{
-        primary_key: "#{Inflex.singularize(resource)}_id",
-        foreign_key: "id"
+        primary_key: "id",
+        foreign_key: "#{Inflex.singularize(resource)}_id"
+      }
+      :has_and_belongs_to_many -> %{
+        bridge_table: ([Inflex.pluralize(resource), Inflex.pluralize(association)] |> Enum.sort |> Enum.join("_")),
+        primary_key: "id",
+        foreign_key: "#{Inflex.singularize(resource)}_id",
+        association_primary_key: "id",
+        association_foreign_key: "#{Inflex.singularize(association)}_id"
       }
     end
       |> Map.put(:macro, macro)
