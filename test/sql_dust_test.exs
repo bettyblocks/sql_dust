@@ -116,7 +116,9 @@ defmodule SqlDustTest do
     }
     schema = %{
       "users": %{
-        "skills": %{macro: :has_and_belongs_to_many}
+        "skills": %{
+          macro: :has_and_belongs_to_many
+        }
       }
     }
     assert SqlDust.from("users", options, schema) == """
@@ -133,7 +135,9 @@ defmodule SqlDustTest do
     }
     schema = %{
       "companies": %{
-        tags: %{macro: :has_and_belongs_to_many}
+        tags: %{
+          macro: :has_and_belongs_to_many
+        }
       }
     }
     assert SqlDust.from("users", options, schema) == """
@@ -154,6 +158,22 @@ defmodule SqlDustTest do
     assert SqlDust.from("resellers", %{}, schema) == """
       SELECT `r`.*
       FROM companies `r`
+      """
+  end
+
+  test "overriding the resource of an association" do
+    options = %{
+      select: ["id", "description", "CONCAT(assignee.first_name, ' ', assignee.last_name)"]
+    }
+    schema = %{
+      "issues": %{
+        assignee: %{resource: "users"}
+      }
+    }
+    assert SqlDust.from("issues", options, schema) == """
+      SELECT `i`.id, `i`.description, CONCAT(`assignee`.first_name, ' ', `assignee`.last_name)
+      FROM issues `i`
+      LEFT JOIN users `assignee` ON `assignee`.id = `i`.assignee_id
       """
   end
 end

@@ -13,12 +13,14 @@ defmodule SqlDust.JoinUtils do
   end
 
   defp derive_table_joins(schema1, path, association, options) do
-    schema2 = derive_schema(Inflex.pluralize(association), "", options)
-
     schema1 = Map.merge(schema1, %{
       path: path,
       table_alias: derive_quoted_path_alias(path, options)
     })
+
+    schema2 = MapUtils.get(schema1, association)
+      |> MapUtils.get(:resource, Inflex.pluralize(association))
+      |> resource_schema(options)
 
     path = case path do
       "" -> association
