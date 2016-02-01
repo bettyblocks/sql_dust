@@ -1,5 +1,4 @@
 defmodule SqlDust.ScanUtils do
-
   def scan_quoted(sql) do
     Regex.scan(~r/(["'])(?:(?=(\\?))\2.)*?\1/, sql)
       |> Enum.reduce([], fn([match, _, _], quoted) ->
@@ -27,5 +26,4 @@ defmodule SqlDust.ScanUtils do
       String.replace(sql, "{#{index + 1}}", pattern)
     end)
   end
-
 end

@@ -28,16 +28,18 @@ defmodule SqlDust.PathUtils do
     end)
 
     Enum.reduce(paths, {sql, options}, fn([path], {sql, options}) ->
-      {path_alias, options} = prepend_path_alias(path, options)
+      {path_alias, options} = prepend_path_alias(path, options, true)
       {String.replace(sql, "{#{path}}", path_alias), options}
     end)
   end
 
-  defp prepend_path_alias(path, options) do
+  def prepend_path_alias(path, options, cascade \\ false) do
     {path, column} = dissect_path(path)
 
-    paths = Enum.concat(options[:paths], cascaded_paths(path))
-    options = Dict.put(options, :paths, paths)
+    if cascade do
+      paths = Enum.concat(options[:paths], cascaded_paths(path))
+      options = Dict.put(options, :paths, paths)
+    end
 
     path_alias = derive_path_alias(path, options)
 

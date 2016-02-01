@@ -1,17 +1,6 @@
 defmodule SqlDust.SchemaUtils do
   alias SqlDust.MapUtils, as: MapUtils
 
-  def resource_schema(resource, options) do
-    resource_schema(resource, nil, options)
-  end
-
-  def resource_schema(resource, association, options) do
-    defacto_schema(resource, association)
-      |> MapUtils.deep_merge(
-        MapUtils.get(options.schema, resource, %{})
-      )
-  end
-
   def derive_schema(path, association, options) when is_bitstring(path) do
     String.split(path, ".")
       |> Enum.reduce([], fn(segment, segments) ->
@@ -35,15 +24,44 @@ defmodule SqlDust.SchemaUtils do
       |> resource_schema(association, options)
   end
 
+  def resource_schema(resource, options) do
+    resource_schema(resource, nil, options)
+  end
+
+  def resource_schema(resource, association, options) do
+    defacto_schema(resource, association)
+      |> MapUtils.deep_merge(
+        MapUtils.get(options.schema, resource, %{})
+      )
+  end
+
   defp defacto_schema(resource, association) do
-    case association do
-      nil -> %{}
-      _ -> Dict.put(%{}, association, %{
-        macro: derive_macro(association)
-      })
+    %{
+      name: resource,
+      table_name: resource
+    }
+      |> Map.merge(defacto_association(resource, association))
+  end
+
+  defp defacto_association(_, association) when is_nil(association), do: %{}
+
+  defp defacto_association(resource, association) do
+    macro = derive_macro(association)
+
+    map = case macro do
+      :belongs_to -> %{
+        primary_key: "id",
+        foreign_key: "#{association}_id"
+      }
+      :has_many -> %{
+        primary_key: "#{Inflex.singularize(resource)}_id",
+        foreign_key: "id"
+      }
     end
-      |> Dict.put(:name, resource)
-      |> Dict.put(:table_name, resource)
+      |> Dict.put(:macro, macro)
+
+    %{}
+      |> Dict.put(association, map)
   end
 
   defp derive_macro(association) do
