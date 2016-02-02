@@ -198,7 +198,7 @@ defmodule SqlDustTest do
       """
   end
 
-  test "grouping query result" do
+  test "grouping the query result" do
     options = %{
       select: ["COUNT(*)"],
       group_by: "category.name"
@@ -208,6 +208,18 @@ defmodule SqlDustTest do
       FROM users `u`
       LEFT JOIN categories `category` ON `category`.id = `u`.category_id
       GROUP BY `category`.name
+      """
+  end
+
+  test "ordering the query result" do
+    options = %{
+      select: ".*",
+      order_by: "last_name ASC, first_name"
+    }
+    assert SqlDust.from("users", options) == """
+      SELECT `u`.*
+      FROM users `u`
+      ORDER BY `u`.last_name ASC, `u`.first_name
       """
   end
 

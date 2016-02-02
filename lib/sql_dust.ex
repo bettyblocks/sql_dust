@@ -24,6 +24,7 @@ defmodule SqlDust do
       |> derive_select
       |> derive_from
       |> derive_group_by
+      |> derive_order_by
       |> derive_limit
       |> derive_joins
       |> compose_sql
@@ -63,6 +64,15 @@ defmodule SqlDust do
     end
   end
 
+  defp derive_order_by(options) do
+    if order_by = MapUtils.get(options, :order_by) do
+      {order_by, options} = prepend_path_aliases(order_by, options)
+      Map.put(options, :order_by, "ORDER BY #{order_by}")
+    else
+      options
+    end
+  end
+
   defp derive_limit(options) do
     if limit = MapUtils.get(options, :limit) do
       Map.put(options, :limit, "LIMIT #{limit}")
@@ -77,6 +87,7 @@ defmodule SqlDust do
       options.from,
       options.joins,
       options[:group_by],
+      options[:order_by],
       options[:limit],
       ""
     ]

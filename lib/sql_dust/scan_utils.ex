@@ -13,6 +13,10 @@ defmodule SqlDust.ScanUtils do
     Regex.scan(~r/\b\w+\(/, sql)
   end
 
+  def scan_reserved_words(sql) do
+    Regex.scan(~r/\b(asc|desc)\b/i, sql)
+  end
+
   def numerize_patterns(sql, patterns) do
     Enum.reduce(patterns, sql, fn(pattern, sql) ->
       index = Enum.find_index(patterns, fn(value) -> value == pattern end)

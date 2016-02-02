@@ -9,6 +9,7 @@ defmodule SqlDust.PathUtils do
     excluded = []
       |> Enum.concat(scan_quoted(sql))
       |> Enum.concat(scan_functions(sql))
+      |> Enum.concat(scan_reserved_words(sql))
       |> List.flatten
       |> Enum.uniq
 
