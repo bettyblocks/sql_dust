@@ -23,8 +23,9 @@ defmodule SqlDust do
       |> Map.put(:resource, resource_schema(resource, options))
       |> derive_select
       |> derive_from
-      |> derive_joins
+      |> derive_group_by
       |> derive_limit
+      |> derive_joins
       |> compose_sql
   end
 
@@ -53,6 +54,15 @@ defmodule SqlDust do
     Map.put options, :joins, joins
   end
 
+  defp derive_group_by(options) do
+    if group_by = MapUtils.get(options, :group_by) do
+      {group_by, options} = prepend_path_aliases(group_by, options)
+      Map.put(options, :group_by, "GROUP BY #{group_by}")
+    else
+      options
+    end
+  end
+
   defp derive_limit(options) do
     if limit = MapUtils.get(options, :limit) do
       Map.put(options, :limit, "LIMIT #{limit}")
@@ -66,6 +76,7 @@ defmodule SqlDust do
       options.select,
       options.from,
       options.joins,
+      options[:group_by],
       options[:limit],
       ""
     ]

@@ -198,7 +198,20 @@ defmodule SqlDustTest do
       """
   end
 
-  test "passing a limit" do
+  test "grouping query result" do
+    options = %{
+      select: ["COUNT(*)"],
+      group_by: "category.name"
+    }
+    assert SqlDust.from("users", options) == """
+      SELECT COUNT(*)
+      FROM users `u`
+      LEFT JOIN categories `category` ON `category`.id = `u`.category_id
+      GROUP BY `category`.name
+      """
+  end
+
+  test "limiting the query result" do
     options = %{
       limit: 20
     }
