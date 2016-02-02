@@ -1,4 +1,6 @@
 defmodule SqlDust do
+  alias SqlDust.MapUtils, as: MapUtils
+
   import SqlDust.SchemaUtils
   import SqlDust.PathUtils
   import SqlDust.JoinUtils
@@ -22,6 +24,7 @@ defmodule SqlDust do
       |> derive_select
       |> derive_from
       |> derive_joins
+      |> derive_limit
       |> compose_sql
   end
 
@@ -50,14 +53,26 @@ defmodule SqlDust do
     Map.put options, :joins, joins
   end
 
+  defp derive_limit(options) do
+    if limit = MapUtils.get(options, :limit) do
+      Map.put(options, :limit, "LIMIT #{limit}")
+    else
+      options
+    end
+  end
+
   defp compose_sql(options) do
     [
       options.select,
       options.from,
       options.joins,
+      options[:limit],
       ""
     ]
       |> List.flatten
+      |> Enum.reject(
+        fn(x) -> is_nil(x) end
+      )
       |> Enum.join("\n")
   end
 end

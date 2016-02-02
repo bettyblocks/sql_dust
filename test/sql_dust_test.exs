@@ -197,4 +197,15 @@ defmodule SqlDustTest do
       LEFT JOIN skills `skills` ON `skills`.id = `skills_bridge_table`.skill_id
       """
   end
+
+  test "passing a limit" do
+    options = %{
+      limit: 20
+    }
+    assert SqlDust.from("users", options) == """
+      SELECT `u`.*
+      FROM users `u`
+      LIMIT 20
+      """
+  end
 end
