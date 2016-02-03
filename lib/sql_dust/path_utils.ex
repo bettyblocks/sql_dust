@@ -5,6 +5,13 @@ defmodule SqlDust.PathUtils do
     {sql, options}
   end
 
+  def prepend_path_aliases(sql, options) when is_list(sql) do
+    Enum.reduce(sql, {[], options}, fn(sql, {list, options}) ->
+      {sql, options} = prepend_path_aliases(sql, options)
+      {List.insert_at(list, -1, sql), options}
+    end)
+  end
+
   def prepend_path_aliases(sql, options) do
     excluded = []
       |> Enum.concat(scan_quoted(sql))

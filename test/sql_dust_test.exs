@@ -58,7 +58,10 @@ defmodule SqlDustTest do
       select: "id, CONCAT(\"First name: '\", first_name, \"' Last name: '\", last_name, \"'\"), DATE_FORMAT(updated_at, '%d-%m-%Y')"
     }
     assert SqlDust.from("users", options) == """
-      SELECT `u`.id, CONCAT("First name: '", `u`.first_name, "' Last name: '", `u`.last_name, "'"), DATE_FORMAT(`u`.updated_at, '%d-%m-%Y')
+      SELECT
+        `u`.id,
+        CONCAT("First name: '", `u`.first_name, "' Last name: '", `u`.last_name, "'"),
+        DATE_FORMAT(`u`.updated_at, '%d-%m-%Y')
       FROM users `u`
       """
   end
@@ -68,7 +71,12 @@ defmodule SqlDustTest do
       select: "id, first_name, user_role.name, department.id, department.name"
     }
     assert SqlDust.from("users", options) == """
-      SELECT `u`.id, `u`.first_name, `user_role`.name, `department`.id, `department`.name
+      SELECT
+        `u`.id,
+        `u`.first_name,
+        `user_role`.name,
+        `department`.id,
+        `department`.name
       FROM users `u`
       LEFT JOIN user_roles `user_role` ON `user_role`.id = `u`.user_role_id
       LEFT JOIN departments `department` ON `department`.id = `u`.department_id
@@ -80,7 +88,10 @@ defmodule SqlDustTest do
       select: "id, first_name, company.category.name"
     }
     assert SqlDust.from("users", options) == """
-      SELECT `u`.id, `u`.first_name, `company.category`.name
+      SELECT
+        `u`.id,
+        `u`.first_name,
+        `company.category`.name
       FROM users `u`
       LEFT JOIN companies `company` ON `company`.id = `u`.company_id
       LEFT JOIN categories `company.category` ON `company.category`.id = `company`.category_id
@@ -92,7 +103,11 @@ defmodule SqlDustTest do
       select: "id, first_name, last_name, GROUP_CONCAT(orders.id)"
     }
     assert SqlDust.from("users", options) == """
-      SELECT `u`.id, `u`.first_name, `u`.last_name, GROUP_CONCAT(`orders`.id)
+      SELECT
+        `u`.id,
+        `u`.first_name,
+        `u`.last_name,
+        GROUP_CONCAT(`orders`.id)
       FROM users `u`
       LEFT JOIN orders `orders` ON `orders`.user_id = `u`.id
       """
@@ -103,7 +118,11 @@ defmodule SqlDustTest do
       select: "id, first_name, last_name, GROUP_CONCAT(company.orders.id)"
     }
     assert SqlDust.from("users", options) == """
-      SELECT `u`.id, `u`.first_name, `u`.last_name, GROUP_CONCAT(`company.orders`.id)
+      SELECT
+        `u`.id,
+        `u`.first_name,
+        `u`.last_name,
+        GROUP_CONCAT(`company.orders`.id)
       FROM users `u`
       LEFT JOIN companies `company` ON `company`.id = `u`.company_id
       LEFT JOIN orders `company.orders` ON `company.orders`.company_id = `company`.id
@@ -122,7 +141,11 @@ defmodule SqlDustTest do
       }
     }
     assert SqlDust.from("users", options, schema) == """
-      SELECT `u`.id, `u`.first_name, `u`.last_name, GROUP_CONCAT(`skills`.name)
+      SELECT
+        `u`.id,
+        `u`.first_name,
+        `u`.last_name,
+        GROUP_CONCAT(`skills`.name)
       FROM users `u`
       LEFT JOIN skills_users `skills_bridge_table` ON `skills_bridge_table`.user_id = `u`.id
       LEFT JOIN skills `skills` ON `skills`.id = `skills_bridge_table`.skill_id
@@ -141,7 +164,11 @@ defmodule SqlDustTest do
       }
     }
     assert SqlDust.from("users", options, schema) == """
-      SELECT `u`.id, `u`.first_name, `u`.last_name, GROUP_CONCAT(`company.tags`.name)
+      SELECT
+        `u`.id,
+        `u`.first_name,
+        `u`.last_name,
+        GROUP_CONCAT(`company.tags`.name)
       FROM users `u`
       LEFT JOIN companies `company` ON `company`.id = `u`.company_id
       LEFT JOIN companies_tags `company.tags_bridge_table` ON `company.tags_bridge_table`.company_id = `company`.id
@@ -171,7 +198,10 @@ defmodule SqlDustTest do
       }
     }
     assert SqlDust.from("issues", options, schema) == """
-      SELECT `i`.id, `i`.description, CONCAT(`assignee`.first_name, ' ', `assignee`.last_name)
+      SELECT
+        `i`.id,
+        `i`.description,
+        CONCAT(`assignee`.first_name, ' ', `assignee`.last_name)
       FROM issues `i`
       LEFT JOIN users `assignee` ON `assignee`.id = `i`.assignee_id
       """
@@ -191,7 +221,11 @@ defmodule SqlDustTest do
       }
     }
     assert SqlDust.from("users", options, schema) == """
-      SELECT `u`.id, `u`.first_name, `u`.last_name, GROUP_CONCAT(`skills`.name)
+      SELECT
+        `u`.id,
+        `u`.first_name,
+        `u`.last_name,
+        GROUP_CONCAT(`skills`.name)
       FROM users `u`
       LEFT JOIN skill_set `skills_bridge_table` ON `skills_bridge_table`.person_id = `u`.id
       LEFT JOIN skills `skills` ON `skills`.id = `skills_bridge_table`.skill_id

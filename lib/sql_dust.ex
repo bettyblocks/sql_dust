@@ -2,6 +2,7 @@ defmodule SqlDust do
   alias SqlDust.MapUtils, as: MapUtils
 
   import SqlDust.SchemaUtils
+  import SqlDust.ScanUtils
   import SqlDust.PathUtils
   import SqlDust.JoinUtils
 
@@ -35,9 +36,20 @@ defmodule SqlDust do
       |> List.insert_at(-1, options[:select])
       |> List.flatten
       |> Enum.join(", ")
+      |> split_arguments
       |> prepend_path_aliases(options)
 
-    Map.put options, :select, "SELECT #{select}"
+    prefix = if String.length(Enum.join(select, ", ")) > 45 do
+      "\n  "
+    else
+      " "
+    end
+
+    select = select
+      |> Enum.map(fn(sql) -> "#{prefix}#{sql}" end)
+      |> Enum.join(",")
+
+    Map.put options, :select, "SELECT#{select}"
   end
 
   defp derive_from(options) do
