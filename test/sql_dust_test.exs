@@ -365,4 +365,18 @@ defmodule SqlDustTest do
       HAVING (order_count > 3)
       """
   end
+
+  test "prepending path aliases in the HAVING statement while respecting SELECT statement aliases" do
+    options = %{
+      select: "id AS identifier",
+      where: "identifier > 0 AND id != 2",
+      order_by: "id"
+    }
+    assert SqlDust.from("users", options) == """
+      SELECT `u`.id AS identifier
+      FROM users `u`
+      HAVING (identifier > 0 AND `u`.id != 2)
+      ORDER BY `u`.id
+      """
+  end
 end

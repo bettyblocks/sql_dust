@@ -16,6 +16,7 @@ defmodule SqlDust do
     }
       |> Map.merge(options)
       |> Map.merge(%{
+        aliases: [],
         paths: [],
         schema: schema
       })
@@ -81,6 +82,7 @@ defmodule SqlDust do
         end)
 
       {where, options} = prepend_path_aliases(where, options)
+      {having, options} = prepend_path_aliases(having, options)
 
       if length(where) > 0 do
         options = Map.put(options, :where, "WHERE #{where |> Enum.join(" AND ")}")
