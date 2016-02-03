@@ -317,4 +317,27 @@ defmodule SqlDustTest do
       WHERE (`tags`.name LIKE '%gifts%')
       """
   end
+
+  test "DirectiveRecord example 5" do
+    options = %{
+      select: "tags.*",
+      where: "tags.name LIKE '%gifts%'",
+      group_by: "tags.id"
+    }
+    schema = %{
+      customers: %{
+        tags: %{
+          "macro": :has_and_belongs_to_many
+        }
+      }
+    }
+    assert SqlDust.from("customers", options, schema) == """
+      SELECT `tags`.*
+      FROM customers `c`
+      LEFT JOIN customers_tags `tags_bridge_table` ON `tags_bridge_table`.customer_id = `c`.id
+      LEFT JOIN tags `tags` ON `tags`.id = `tags_bridge_table`.tag_id
+      WHERE (`tags`.name LIKE '%gifts%')
+      GROUP BY `tags`.id
+      """
+  end
 end
