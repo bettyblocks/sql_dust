@@ -24,6 +24,7 @@ defmodule SqlDust do
       |> Map.put(:resource, resource_schema(resource, options))
       |> derive_select
       |> derive_from
+      |> derive_where
       |> derive_group_by
       |> derive_order_by
       |> derive_limit
@@ -67,6 +68,17 @@ defmodule SqlDust do
     Map.put options, :joins, joins
   end
 
+  defp derive_where(options) do
+    if where = MapUtils.get(options, :where) do
+      where = [where] |> List.flatten
+      {where, options} = prepend_path_aliases(where, options)
+      where = Enum.map(where, fn(sql) -> "(#{sql})" end) |> Enum.join(" AND ")
+      Map.put(options, :where, "WHERE #{where}")
+    else
+      options
+    end
+  end
+
   defp derive_group_by(options) do
     if group_by = MapUtils.get(options, :group_by) do
       {group_by, options} = prepend_path_aliases(group_by, options)
@@ -98,6 +110,7 @@ defmodule SqlDust do
       options.select,
       options.from,
       options.joins,
+      options[:where],
       options[:group_by],
       options[:order_by],
       options[:limit],

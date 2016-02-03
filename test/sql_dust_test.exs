@@ -267,4 +267,54 @@ defmodule SqlDustTest do
       LIMIT 20
       """
   end
+
+  test "DirectiveRecord example 1" do
+    options = %{
+      select: "id, name, COUNT(orders.id) AS order_count, GROUP_CONCAT(DISTINCT tags.name) AS tags",
+      group_by: "id",
+      order_by: "COUNT(DISTINCT tags.id) DESC",
+      limit: 5
+    }
+    schema = %{
+      customers: %{
+        tags: %{
+          macro: :has_and_belongs_to_many
+        }
+      }
+    }
+    assert SqlDust.from("customers", options, schema) == """
+      SELECT
+        `c`.id,
+        `c`.name,
+        COUNT(`orders`.id) AS order_count,
+        GROUP_CONCAT(DISTINCT `tags`.name) AS tags
+      FROM customers `c`
+      LEFT JOIN orders `orders` ON `orders`.customer_id = `c`.id
+      LEFT JOIN customers_tags `tags_bridge_table` ON `tags_bridge_table`.customer_id = `c`.id
+      LEFT JOIN tags `tags` ON `tags`.id = `tags_bridge_table`.tag_id
+      GROUP BY `c`.id
+      ORDER BY COUNT(DISTINCT `tags`.id) DESC
+      LIMIT 5
+      """
+  end
+
+  test "DirectiveRecord example 3" do
+    options = %{
+      where: "tags.name LIKE '%gifts%'"
+    }
+    schema = %{
+      "customers": %{
+        tags: %{
+          "macro": :has_and_belongs_to_many
+        }
+      }
+    }
+    assert SqlDust.from("customers", options, schema) == """
+      SELECT `c`.*
+      FROM customers `c`
+      LEFT JOIN customers_tags `tags_bridge_table` ON `tags_bridge_table`.customer_id = `c`.id
+      LEFT JOIN tags `tags` ON `tags`.id = `tags_bridge_table`.tag_id
+      WHERE (`tags`.name LIKE '%gifts%')
+      """
+  end
 end
