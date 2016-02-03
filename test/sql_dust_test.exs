@@ -340,4 +340,29 @@ defmodule SqlDustTest do
       GROUP BY `tags`.id
       """
   end
+
+  test "DirectiveRecord example 6" do
+    options = %{
+      select: ["id", "name", "COUNT(orders.id) AS order_count"],
+      where: "order_count > 3",
+      group_by: "id"
+    }
+    schema = %{
+      customers: %{
+        tags: %{
+          "macro": :has_and_belongs_to_many
+        }
+      }
+    }
+    assert SqlDust.from("customers", options, schema) == """
+      SELECT
+        `c`.id,
+        `c`.name,
+        COUNT(`orders`.id) AS order_count
+      FROM customers `c`
+      LEFT JOIN orders `orders` ON `orders`.customer_id = `c`.id
+      GROUP BY `c`.id
+      HAVING (order_count > 3)
+      """
+  end
 end

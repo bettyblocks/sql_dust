@@ -70,13 +70,30 @@ defmodule SqlDust do
 
   defp derive_where(options) do
     if where = MapUtils.get(options, :where) do
-      where = [where] |> List.flatten
+      {having, where} = [where]
+        |> List.flatten
+        |> Enum.map(fn(sql) -> "(#{sql})" end)
+        |> Enum.partition(fn(sql) ->
+          sql = sanitize_sql(sql)
+          Enum.any?(options.aliases, fn(sql_alias) ->
+            String.match?(sql, ~r/\b#{sql_alias}\b/)
+          end)
+        end)
+
       {where, options} = prepend_path_aliases(where, options)
-      where = Enum.map(where, fn(sql) -> "(#{sql})" end) |> Enum.join(" AND ")
-      Map.put(options, :where, "WHERE #{where}")
-    else
-      options
+
+      if length(where) > 0 do
+        options = Map.put(options, :where, "WHERE #{where |> Enum.join(" AND ")}")
+      else
+        options = Map.delete(options, :where)
+      end
+
+      if length(having) > 0 do
+        options = Map.put(options, :having, "HAVING #{having |> Enum.join(" AND ")}")
+      end
     end
+
+    options
   end
 
   defp derive_group_by(options) do
@@ -112,6 +129,7 @@ defmodule SqlDust do
       options.joins,
       options[:where],
       options[:group_by],
+      options[:having],
       options[:order_by],
       options[:limit],
       ""
