@@ -65,41 +65,42 @@ Generating SQL queries has never been simpler. Just invoke the `SqlDust.from/3` 
 * `schema` (optional) - A map containing info which overrule the defacto derived schema
 
 ```elixir
-iex(1)> options = %{
-...(1)>       select: "id, name, COUNT(orders.id) AS order_count, GROUP_CONCAT(DISTINCT tags.name) AS tags",
-...(1)>       group_by: "id",
-...(1)>       where: ["name LIKE '%Paul%'", "order_count > 5"],
-...(1)>       order_by: "COUNT(DISTINCT tags.id) DESC",
-...(1)>       limit: 5
-...(1)>     }
-%{group_by: "id", limit: 5, order_by: "COUNT(DISTINCT tags.id) DESC",
-  select: "id, name, COUNT(orders.id) AS order_count, GROUP_CONCAT(DISTINCT tags.name) AS tags",
-  where: ["name LIKE '%Paul%'", "order_count > 5"]}
-iex(2)> schema = %{
-...(2)>       customers: %{
-...(2)>         tags: %{
-...(2)>           macro: :has_and_belongs_to_many
-...(2)>         }
-...(2)>       }
-...(2)>     }
-%{customers: %{tags: %{macro: :has_and_belongs_to_many}}}
-iex(3)> IO.puts SqlDust.from("customers", options, schema)
+options = %{
+  select: "id, name, COUNT(orders.id) AS order_count, GROUP_CONCAT(DISTINCT tags.name) AS tags, foo.tags",
+  group_by: "id",
+  where: ["name LIKE '%Paul%'", "order_count > 5", "foo.tags = 1"],
+  order_by: "COUNT(DISTINCT tags.id) DESC",
+  limit: 5
+}
+
+schema = %{
+  customers: %{
+    tags: %{
+      macro: :has_and_belongs_to_many
+    }
+  }
+}
+
+IO.puts SqlDust.from("customers", options, schema)
+
+"""
 SELECT
   `c`.id,
   `c`.name,
   COUNT(`orders`.id) AS order_count,
-  GROUP_CONCAT(DISTINCT `tags`.name) AS tags
+  GROUP_CONCAT(DISTINCT `tags`.name) AS tags,
+  `foo`.tags
 FROM customers `c`
 LEFT JOIN orders `orders` ON `orders`.customer_id = `c`.id
 LEFT JOIN customers_tags `tags_bridge_table` ON `tags_bridge_table`.customer_id = `c`.id
 LEFT JOIN tags `tags` ON `tags`.id = `tags_bridge_table`.tag_id
-WHERE (`c`.name LIKE '%Paul%') AND (`c`.order_count > 5)
+LEFT JOIN foos `foo` ON `foo`.id = `c`.foo_id
+WHERE (`c`.name LIKE '%Paul%') AND (`foo`.tags = 1)
 GROUP BY `c`.id
+HAVING (order_count > 5)
 ORDER BY COUNT(DISTINCT `tags`.id) DESC
 LIMIT 5
-
-:ok
-iex(4)>
+"""
 ```
 
 Enjoy using SqlDust! ^^
@@ -120,7 +121,8 @@ Every SqlDust feature is tested in [test/sql_dust_test.exs](https://github.com/a
 
 ## TODO
 
-* Add extra documentation
+* Add additional documentation to the README
+* Add doc tests for internal functions
 
 ## License
 
