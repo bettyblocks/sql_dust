@@ -268,10 +268,11 @@ defmodule SqlDustTest do
       """
   end
 
-  test "DirectiveRecord example 1" do
+  test "DirectiveRecord example 1 (with additional WHERE statements)" do
     options = %{
-      select: "id, name, COUNT(orders.id) AS order_count, GROUP_CONCAT(DISTINCT tags.name) AS tags",
+      select: "id, name, COUNT(orders.id) AS order_count, GROUP_CONCAT(DISTINCT tags.name) AS tags, foo.tags",
       group_by: "id",
+      where: ["name LIKE '%Paul%'", "order_count > 5", "foo.tags = 1"],
       order_by: "COUNT(DISTINCT tags.id) DESC",
       limit: 5
     }
@@ -287,12 +288,16 @@ defmodule SqlDustTest do
         `c`.id,
         `c`.name,
         COUNT(`orders`.id) AS order_count,
-        GROUP_CONCAT(DISTINCT `tags`.name) AS tags
+        GROUP_CONCAT(DISTINCT `tags`.name) AS tags,
+        `foo`.tags
       FROM customers `c`
       LEFT JOIN orders `orders` ON `orders`.customer_id = `c`.id
       LEFT JOIN customers_tags `tags_bridge_table` ON `tags_bridge_table`.customer_id = `c`.id
       LEFT JOIN tags `tags` ON `tags`.id = `tags_bridge_table`.tag_id
+      LEFT JOIN foos `foo` ON `foo`.id = `c`.foo_id
+      WHERE (`c`.name LIKE '%Paul%') AND (`foo`.tags = 1)
       GROUP BY `c`.id
+      HAVING (order_count > 5)
       ORDER BY COUNT(DISTINCT `tags`.id) DESC
       LIMIT 5
       """

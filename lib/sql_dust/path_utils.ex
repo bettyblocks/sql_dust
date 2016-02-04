@@ -13,11 +13,21 @@ defmodule SqlDust.PathUtils do
   end
 
   def prepend_path_aliases(sql, options) do
-    {excluded, aliases} = scan_excluded(sql, options.aliases)
+    {excluded, aliases} = scan_excluded(sql)
 
-    options = Map.put(options, :aliases, Enum.map(aliases, fn(sql_alias) ->
-      String.replace(sql_alias, ~r/^ AS /i, "")
-    end))
+    aliases = aliases
+      |> Enum.map(fn(sql_alias) ->
+        String.replace(sql_alias, ~r/^ AS /i, "")
+      end)
+      |> Enum.concat(options.aliases)
+      |> Enum.uniq
+
+    excluded = excluded
+      |> Enum.concat(Enum.map(aliases, fn(sql_alias) ->
+        [~r/([^\.\w])#{sql_alias}([^\.\w])/, sql_alias]
+      end))
+
+    options = Map.put(options, :aliases, aliases)
 
     sql = numerize_patterns(sql, excluded)
     {sql, options} = scan_and_prepend_path_aliases(sql, options)
@@ -26,15 +36,15 @@ defmodule SqlDust.PathUtils do
     {sql, options}
   end
 
-  def sanitize_sql(sql, exclude \\ []) do
-    {excluded, _} = scan_excluded(sql, exclude)
+  def sanitize_sql(sql) do
+    {excluded, _} = scan_excluded(sql)
     Enum.reduce(excluded, sql, fn(pattern, sql) ->
       String.replace(sql, pattern, "")
     end)
   end
 
-  defp scan_excluded(sql, exclude) do
-    excluded = exclude
+  defp scan_excluded(sql) do
+    excluded = []
       |> Enum.concat(scan_quoted(sql))
       |> Enum.concat(scan_functions(sql))
       |> Enum.concat(aliases = scan_aliases(sql) |> List.flatten |> Enum.uniq)

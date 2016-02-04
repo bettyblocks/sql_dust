@@ -68,13 +68,23 @@ defmodule SqlDust.ScanUtils do
   def numerize_patterns(sql, patterns) do
     Enum.reduce(patterns, sql, fn(pattern, sql) ->
       index = Enum.find_index(patterns, fn(value) -> value == pattern end)
-      String.replace(sql, pattern, "{#{index + 1}}")
+      if is_list(pattern) do
+        regex = Enum.at(pattern, 0)
+        Regex.replace(regex, sql, fn(_, prefix, postfix) ->
+          "#{prefix}{#{index + 1}}#{postfix}"
+        end)
+      else
+        String.replace(sql, pattern, "{#{index + 1}}")
+      end
     end)
   end
 
   def interpolate_patterns(sql, patterns) do
     Enum.reduce(patterns, sql, fn(pattern, sql) ->
       index = Enum.find_index(patterns, fn(value) -> value == pattern end)
+      if is_list(pattern) do
+        pattern = Enum.at(pattern, 1)
+      end
       String.replace(sql, "{#{index + 1}}", pattern)
     end)
   end

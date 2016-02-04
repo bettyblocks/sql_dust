@@ -77,7 +77,7 @@ defmodule SqlDust do
         |> Enum.partition(fn(sql) ->
           sql = sanitize_sql(sql)
           Enum.any?(options.aliases, fn(sql_alias) ->
-            String.match?(sql, ~r/\b#{sql_alias}\b/)
+            String.match?(sql, ~r/[^\.\w]#{sql_alias}[^\.\w]/)
           end)
         end)
 
