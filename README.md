@@ -4,7 +4,7 @@ Easy. Simple. Powerful. Generate (complex) SQL queries using magical Elixir SQL 
 
 ## Introduction
 
-Every language has its commonly used libraries / gems / packages to interact with database. Ruby has [ActiveRecord](https://github.com/rails/rails/tree/master/activerecord) and Elixir has [Ecto](https://github.com/elixir-lang/ecto). They provide a lot of functionality which are very useful but when it comes to quickly and easily querying tabular data they require too much hassle:
+Every language has its commonly used libraries / gems / packages to interact with databases. Ruby has [ActiveRecord](https://github.com/rails/rails/tree/master/activerecord) and Elixir has [Ecto](https://github.com/elixir-lang/ecto). They provide a lot of functionality which are very useful but when it comes to quickly and easily querying tabular data they require too much hassle:
 
 * you have to describe models representing tables ([example](https://github.com/elixir-lang/ecto/blob/master/examples/simple/lib/simple.ex))
 * you have to describe how to join tables ([example](https://blog.drewolson.org/composable-queries-ecto))
@@ -117,7 +117,17 @@ Every SqlDust feature is tested in [test/sql_dust_test.exs](https://github.com/a
 
 * Query from the database
 * Use database connection and/or Ecto to derive defacto schema even better
-* Support querying with an Ecto model `SqlDust.from(Sample.Weather)`
+* Support querying with an Ecto model `SqlDust.from(Sample.Weather)` or like
+
+```elixir
+import SqlDust.Ecto
+Article
+|> select(....)
+|> where(....)
+|> where(....)
+|> group_by(....)
+|> to_sql
+```
 
 ## TODO
 
