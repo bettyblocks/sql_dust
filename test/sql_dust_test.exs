@@ -347,14 +347,7 @@ defmodule SqlDustTest do
       where: "order_count > 3",
       group_by: "id"
     }
-    schema = %{
-      customers: %{
-        tags: %{
-          "macro": :has_and_belongs_to_many
-        }
-      }
-    }
-    assert SqlDust.from("customers", options, schema) == """
+    assert SqlDust.from("customers", options) == """
       SELECT
         `c`.id,
         `c`.name,
