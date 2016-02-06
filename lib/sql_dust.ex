@@ -14,11 +14,11 @@ defmodule SqlDust do
     options = %{
       select: ".*"
     }
-      |> Map.merge(options)
+      |> Map.merge(options || %{})
       |> Map.merge(%{
         aliases: [],
         paths: [],
-        schema: schema
+        schema: (schema || %{})
       })
 
     options
@@ -34,10 +34,7 @@ defmodule SqlDust do
   end
 
   defp derive_select(options) do
-    {select, options} = []
-      |> List.insert_at(-1, options[:select])
-      |> List.flatten
-      |> Enum.join(", ")
+    {select, options} = options[:select]
       |> split_arguments
       |> prepend_path_aliases(options)
 
@@ -100,8 +97,11 @@ defmodule SqlDust do
 
   defp derive_group_by(options) do
     if group_by = MapUtils.get(options, :group_by) do
-      {group_by, options} = prepend_path_aliases(group_by, options)
-      Map.put(options, :group_by, "GROUP BY #{group_by}")
+      {group_by, options} = group_by
+        |> split_arguments
+        |> prepend_path_aliases(options)
+
+      Map.put(options, :group_by, "GROUP BY #{group_by |> Enum.join(", ")}")
     else
       options
     end
@@ -109,8 +109,11 @@ defmodule SqlDust do
 
   defp derive_order_by(options) do
     if order_by = MapUtils.get(options, :order_by) do
-      {order_by, options} = prepend_path_aliases(order_by, options)
-      Map.put(options, :order_by, "ORDER BY #{order_by}")
+      {order_by, options} = order_by
+        |> split_arguments
+        |> prepend_path_aliases(options)
+
+      Map.put(options, :order_by, "ORDER BY #{order_by |> Enum.join(", ")}")
     else
       options
     end

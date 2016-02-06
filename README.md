@@ -81,7 +81,7 @@ schema = %{
   }
 }
 
-IO.puts SqlDust.from("customers", options, schema)
+SqlDust.from("customers", options, schema) |> IO.puts
 
 """
 SELECT
@@ -100,6 +100,30 @@ GROUP BY `c`.id
 HAVING (order_count > 5)
 ORDER BY COUNT(DISTINCT `tags`.id) DESC
 LIMIT 5
+"""
+```
+
+### Composable queries
+
+As of version 0.1.0, it is to possible compose queries (thanks to [Justin Workman](https://github.com/xtagon) for the request):
+
+```elixir
+import SqlDust.Query
+
+select("id, last_name, first_name")
+  |> from("users")
+  |> where("company.id = 1982")
+  |> where("last_name LIKE '%Engel%'")
+  |> order_by(["last_name", "first_name"])
+  |> to_sql
+  |> IO.puts
+
+"""
+SELECT `u`.id, `u`.last_name, `u`.first_name
+FROM users `u`
+LEFT JOIN companies `company` ON `company`.id = `u`.company_id
+WHERE (`company`.id = 1982) AND (`u`.last_name LIKE '%Engel%')
+ORDER BY `u`.last_name, `u`.first_name
 """
 ```
 

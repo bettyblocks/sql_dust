@@ -27,6 +27,7 @@ defmodule SqlDustTest do
     options = %{
       select: "id, first_name, last_name"
     }
+
     assert SqlDust.from("users", options) == """
       SELECT `u`.id, `u`.first_name, `u`.last_name
       FROM users `u`
@@ -37,6 +38,7 @@ defmodule SqlDustTest do
     options = %{
       select: ["id", "first_name", "last_name"]
     }
+
     assert SqlDust.from("users", options) == """
       SELECT `u`.id, `u`.first_name, `u`.last_name
       FROM users `u`
@@ -47,6 +49,7 @@ defmodule SqlDustTest do
     options = %{
       select: "COUNT(*)"
     }
+
     assert SqlDust.from("users", options) == """
       SELECT COUNT(*)
       FROM users `u`
@@ -57,6 +60,7 @@ defmodule SqlDustTest do
     options = %{
       select: "id, CONCAT(\"First name: '\", first_name, \"' Last name: '\", last_name, \"'\"), DATE_FORMAT(updated_at, '%d-%m-%Y')"
     }
+
     assert SqlDust.from("users", options) == """
       SELECT
         `u`.id,
@@ -70,6 +74,7 @@ defmodule SqlDustTest do
     options = %{
       select: "id, first_name, user_role.name, department.id, department.name"
     }
+
     assert SqlDust.from("users", options) == """
       SELECT
         `u`.id,
@@ -87,6 +92,7 @@ defmodule SqlDustTest do
     options = %{
       select: "id, first_name, company.category.name"
     }
+
     assert SqlDust.from("users", options) == """
       SELECT
         `u`.id,
@@ -102,6 +108,7 @@ defmodule SqlDustTest do
     options = %{
       select: "id, first_name, last_name, GROUP_CONCAT(orders.id)"
     }
+
     assert SqlDust.from("users", options) == """
       SELECT
         `u`.id,
@@ -117,6 +124,7 @@ defmodule SqlDustTest do
     options = %{
       select: "id, first_name, last_name, GROUP_CONCAT(company.orders.id)"
     }
+
     assert SqlDust.from("users", options) == """
       SELECT
         `u`.id,
@@ -140,6 +148,7 @@ defmodule SqlDustTest do
         }
       }
     }
+
     assert SqlDust.from("users", options, schema) == """
       SELECT
         `u`.id,
@@ -163,6 +172,7 @@ defmodule SqlDustTest do
         }
       }
     }
+
     assert SqlDust.from("users", options, schema) == """
       SELECT
         `u`.id,
@@ -182,6 +192,7 @@ defmodule SqlDustTest do
         "table_name": "companies"
       }
     }
+
     assert SqlDust.from("resellers", %{}, schema) == """
       SELECT `r`.*
       FROM companies `r`
@@ -197,6 +208,7 @@ defmodule SqlDustTest do
         assignee: %{resource: "users"}
       }
     }
+
     assert SqlDust.from("issues", options, schema) == """
       SELECT
         `i`.id,
@@ -220,6 +232,7 @@ defmodule SqlDustTest do
         }
       }
     }
+
     assert SqlDust.from("users", options, schema) == """
       SELECT
         `u`.id,
@@ -237,6 +250,7 @@ defmodule SqlDustTest do
       select: ["COUNT(*)"],
       group_by: "category.name"
     }
+
     assert SqlDust.from("users", options) == """
       SELECT COUNT(*)
       FROM users `u`
@@ -245,11 +259,25 @@ defmodule SqlDustTest do
       """
   end
 
-  test "ordering the query result" do
+  test "ordering the query result (passing a string)" do
     options = %{
       select: ".*",
       order_by: "last_name ASC, first_name"
     }
+
+    assert SqlDust.from("users", options) == """
+      SELECT `u`.*
+      FROM users `u`
+      ORDER BY `u`.last_name ASC, `u`.first_name
+      """
+  end
+
+  test "ordering the query result (passing a list)" do
+    options = %{
+      select: ".*",
+      order_by: ["last_name ASC", "first_name"]
+    }
+
     assert SqlDust.from("users", options) == """
       SELECT `u`.*
       FROM users `u`
@@ -261,6 +289,7 @@ defmodule SqlDustTest do
     options = %{
       limit: 20
     }
+
     assert SqlDust.from("users", options) == """
       SELECT `u`.*
       FROM users `u`
@@ -283,6 +312,7 @@ defmodule SqlDustTest do
         }
       }
     }
+
     assert SqlDust.from("customers", options, schema) == """
       SELECT
         `c`.id,
@@ -314,6 +344,7 @@ defmodule SqlDustTest do
         }
       }
     }
+
     assert SqlDust.from("customers", options, schema) == """
       SELECT `c`.*
       FROM customers `c`
@@ -336,6 +367,7 @@ defmodule SqlDustTest do
         }
       }
     }
+
     assert SqlDust.from("customers", options, schema) == """
       SELECT `tags`.*
       FROM customers `c`
@@ -352,6 +384,7 @@ defmodule SqlDustTest do
       where: "order_count > 3",
       group_by: "id"
     }
+
     assert SqlDust.from("customers", options) == """
       SELECT
         `c`.id,
@@ -370,6 +403,7 @@ defmodule SqlDustTest do
       where: "identifier > 0 AND id != 2",
       order_by: "id"
     }
+
     assert SqlDust.from("users", options) == """
       SELECT `u`.id AS identifier
       FROM users `u`
