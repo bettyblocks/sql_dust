@@ -1,6 +1,5 @@
 defmodule SqlDust.JoinUtils do
-  alias SqlDust.MapUtils, as: MapUtils
-
+  alias SqlDust.MapUtils
   import SqlDust.SchemaUtils
   import SqlDust.PathUtils
 

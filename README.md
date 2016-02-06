@@ -22,7 +22,7 @@ Enter `SqlDust`. It makes it as easy and simple as possible for the developer to
 
 Just focus on what really matters! ;)
 
-### An example
+### Examples
 
 Based on standard naming conventions, `SqlDust` will determine how to join tables. You just have to specify from which resource (table) to query from and which columns to select using paths:
 
@@ -38,6 +38,21 @@ LEFT JOIN categories `company.category` ON `company.category`.id = `company`.cat
 
 :ok
 iex(2)>
+```
+
+Composable queries are also possible:
+
+```elixir
+iex(1)> import SqlDust.Query
+nil
+iex(2)> select("id, last_name, first_name") |> from("users") |> where("company.id = 1982") |> to_sql |> IO.puts
+SELECT `u`.id, `u`.last_name, `u`.first_name
+FROM users `u`
+LEFT JOIN companies `company` ON `company`.id = `u`.company_id
+WHERE (`company`.id = 1982)
+
+:ok
+iex(3)>
 ```
 
 ## Installation
@@ -105,7 +120,7 @@ LIMIT 5
 
 ### Composable queries
 
-As of version 0.1.0, it is to possible compose queries (thanks to [Justin Workman](https://github.com/xtagon) for the request):
+As of version `0.1.0`, it is to possible compose queries (thanks to [Justin Workman](https://github.com/xtagon) for the request):
 
 ```elixir
 import SqlDust.Query

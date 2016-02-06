@@ -1,6 +1,5 @@
 defmodule SqlDust do
-  alias SqlDust.MapUtils, as: MapUtils
-
+  alias SqlDust.MapUtils
   import SqlDust.SchemaUtils
   import SqlDust.ScanUtils
   import SqlDust.PathUtils

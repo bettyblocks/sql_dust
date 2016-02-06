@@ -7,7 +7,7 @@ defmodule SqlDust.QueryError do
 end
 
 defmodule SqlDust.Query do
-  alias SqlDust.MapUtils, as: MapUtils
+  alias SqlDust.MapUtils
 
   @moduledoc """
     Provides ability for composable queries

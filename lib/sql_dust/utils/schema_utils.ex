@@ -1,5 +1,5 @@
 defmodule SqlDust.SchemaUtils do
-  alias SqlDust.MapUtils, as: MapUtils
+  alias SqlDust.MapUtils
 
   def derive_schema(path, association, options) when is_bitstring(path) do
     String.split(path, ".")
