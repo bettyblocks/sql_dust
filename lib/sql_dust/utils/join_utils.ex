@@ -24,16 +24,12 @@ defmodule SqlDust.JoinUtils do
         _ -> "#{path}.#{association}"
       end)
 
-    schema3 = MapUtils.get(schema1, association)
+    association = MapUtils.get(schema1, association)
 
-    case MapUtils.get(schema1, association).macro do
-      :belongs_to -> derive_belongs_to_joins(schema1, schema2, schema3)
-      :has_many -> derive_has_many_joins(schema1, schema2, schema3)
-      :has_and_belongs_to_many -> derive_has_and_belongs_to_many_joins(schema1, schema2, schema3)
-    end
+    derive_schema_joins(association.macro, schema1, schema2, association)
   end
 
-  defp derive_belongs_to_joins(schema1, schema2, association) do
+  defp derive_schema_joins(macro, schema1, schema2, association) when macro == :belongs_to do
     %{
       table: schema2.table_name,
       path: schema2.path,
@@ -42,7 +38,7 @@ defmodule SqlDust.JoinUtils do
     }
   end
 
-  defp derive_has_many_joins(schema1, schema2, association) do
+  defp derive_schema_joins(macro, schema1, schema2, association) when macro == :has_many do
     %{
       table: schema2.table_name,
       path: schema2.path,
@@ -51,7 +47,7 @@ defmodule SqlDust.JoinUtils do
     }
   end
 
-  defp derive_has_and_belongs_to_many_joins(schema1, schema2, association) do
+  defp derive_schema_joins(macro, schema1, schema2, association) when macro == :has_and_belongs_to_many do
     [
       %{
         table: association.bridge_table,

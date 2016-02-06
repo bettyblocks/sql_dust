@@ -1,4 +1,12 @@
 defmodule SqlDust.ScanUtils do
+
+  def split_arguments(sql) when is_list(sql) do
+    sql
+      |> List.flatten
+      |> Enum.join(", ")
+      |> split_arguments
+  end
+
   def split_arguments(sql) do
     excluded = scan_quoted(sql)
 
