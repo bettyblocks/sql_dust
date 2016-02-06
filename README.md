@@ -155,6 +155,7 @@ Article
 
 ## TODO
 
+* Prevent SQL injection attacks
 * Add additional documentation to the README
 * Add doc tests for internal functions
 
