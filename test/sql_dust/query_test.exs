@@ -36,6 +36,16 @@ defmodule SqlDust.QueryTest do
     }
   end
 
+  test "passing a string to imply the :from option" do
+    query_dust = "users"
+      |> SqlDust.Query.select("id")
+
+    assert query_dust == %SqlDust.QueryDust{
+      select: ["id"],
+      from: "users"
+    }
+  end
+
   test "from returns SqlDust.QueryDust containing :from option" do
     query_dust = SqlDust.Query.from("users")
 

@@ -52,7 +52,12 @@ LEFT JOIN companies `company` ON `company`.id = `u`.company_id
 WHERE (`company`.id = 1982)
 
 :ok
-iex(3)>
+iex(3)> "users" |> to_sql |> IO.puts
+SELECT `u`.*
+FROM users `u`
+
+:ok
+iex(4)>
 ```
 
 ## Installation
@@ -171,6 +176,7 @@ Article
 ## TODO
 
 * Prevent SQL injection attacks
+* Support polymorphic associations
 * Add additional documentation to the README
 * Add doc tests for internal functions
 

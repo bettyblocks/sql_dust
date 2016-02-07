@@ -13,11 +13,11 @@ defmodule SqlDust do
     options = %{
       select: ".*"
     }
-      |> Map.merge(options || %{})
+      |> Map.merge(options)
       |> Map.merge(%{
         aliases: [],
         paths: [],
-        schema: (schema || %{})
+        schema: schema
       })
 
     options
