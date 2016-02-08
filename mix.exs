@@ -18,11 +18,12 @@ defmodule SqlDust.Mixfile do
 
   defp deps do
     [
+      {:inflex, "~> 1.5.0"},
+      {:ecto, "~> 1.1"},
       {:earmark, "~> 0.1", only: :dev},
       {:ex_doc, "~> 0.11", only: :dev},
-      {:inflex, "~> 1.5.0"},
-      {:inch_ex, ">= 0.0.0", only: :docs},
-      {:credo, "~> 0.2", only: [:dev, :test]}
+      {:credo, "~> 0.2", only: [:dev, :test]},
+      {:inch_ex, ">= 0.0.0", only: :docs}
     ]
   end
 

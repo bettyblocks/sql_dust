@@ -60,6 +60,26 @@ FROM users `u`
 iex(4)>
 ```
 
+Composable queries using [Ecto](https://github.com/elixir-lang/ecto) models are also possible (using [Ecto simple example](https://github.com/elixir-lang/ecto/blob/master/examples/simple/lib/simple.ex)):
+
+```elixir
+iex(1)> import Ecto.SqlDust
+nil
+iex(2)> Weather |> to_sql |> IO.puts
+SELECT `w`.*
+FROM weather `w`
+
+:ok
+iex(3)> City |> select("id, name, country.name") |> where("country.name = 'United States'") |> to_sql |> IO.puts
+SELECT `c`.id, `c`.name, `country`.name
+FROM cities `c`
+LEFT JOIN countries `country` ON `country`.id = `c`.country_id
+WHERE (`country`.name = 'United States')
+
+:ok
+iex(4)>
+```
+
 ## Installation
 
 To install SqlDust, please do the following:
@@ -131,8 +151,7 @@ As of version `0.1.0`, it is to possible compose queries (thanks to [Justin Work
 import SqlDust.Query
 
 select("id, last_name, first_name")
-  |> from("users")
-  |> where("company.id = 1982")
+  |> from("users") |> where("company.id = 1982")
   |> where("last_name LIKE '%Engel%'")
   |> order_by(["last_name", "first_name"])
   |> to_sql
@@ -144,6 +163,33 @@ FROM users `u`
 LEFT JOIN companies `company` ON `company`.id = `u`.company_id
 WHERE (`company`.id = 1982) AND (`u`.last_name LIKE '%Engel%')
 ORDER BY `u`.last_name, `u`.first_name
+"""
+```
+
+### Composable queries using Ecto models
+
+As of version `0.1.1`, it is to possible compose queries using Ecto(!) models:
+
+```elixir
+import Ecto.SqlDust
+
+City
+  |> select("id, name, country.name, local_weather.temp_lo, local_weather.temp_hi")
+  |> where("local_weather.wdate = '2015-09-12'")
+  |> to_sql
+  |> IO.puts
+
+"""
+SELECT
+  `c`.id,
+  `c`.name,
+  `country`.name,
+  `local_weather`.temp_lo,
+  `local_weather`.temp_hi
+FROM cities `c`
+LEFT JOIN countries `country` ON `country`.id = `c`.country_id
+LEFT JOIN weather `local_weather` ON `local_weather`.city_id = `c`.id
+WHERE (`local_weather`.wdate = '2015-09-12')
 """
 ```
 
@@ -160,22 +206,11 @@ Every SqlDust feature is tested in [test/sql_dust_test.exs](https://github.com/a
 ## Nice To Have
 
 * Query from the database
-* Use database connection and/or Ecto to derive defacto schema even better
-* Support querying with an Ecto model `SqlDust.from(Sample.Weather)` or like
-
-```elixir
-import SqlDust.Ecto
-Article
-|> select(....)
-|> where(....)
-|> where(....)
-|> group_by(....)
-|> to_sql
-```
 
 ## TODO
 
 * Prevent SQL injection attacks
+* Support `has through` associations
 * Support polymorphic associations
 * Add additional documentation to the README
 * Add doc tests for internal functions
