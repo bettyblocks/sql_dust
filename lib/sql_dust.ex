@@ -5,7 +5,7 @@ defmodule SqlDust do
   import SqlDust.JoinUtils
   alias SqlDust.MapUtils
 
-  defstruct [:select, :from, :where, :group_by, :order_by, :limit, :schema]
+  defstruct [:select, :from, :where, :group_by, :order_by, :limit, :schema, :adapter]
 
   @moduledoc """
     SqlDust is a module that generates SQL queries as intuitively as possible.
@@ -13,7 +13,8 @@ defmodule SqlDust do
 
   def from(resource, options \\ %{}, schema \\ %{}) do
     options = %{
-      select: ".*"
+      select: ".*",
+      adapter: :mysql
     }
       |> Map.merge(options)
       |> Map.merge(%{

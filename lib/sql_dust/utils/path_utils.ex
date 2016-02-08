@@ -79,7 +79,7 @@ defmodule SqlDust.PathUtils do
 
     path_alias = derive_path_alias(path, options)
 
-    {"#{quote_alias(path_alias)}.#{column}", options}
+    {"#{quote_alias(path_alias, options)}.#{column}", options}
   end
 
   def dissect_path(path) do
@@ -109,7 +109,7 @@ defmodule SqlDust.PathUtils do
   end
 
   def derive_quoted_path_alias(path, options) do
-    quote_alias derive_path_alias(path, options)
+    quote_alias(derive_path_alias(path, options), options)
   end
 
   defp derive_path_alias(path, options) do
@@ -119,7 +119,11 @@ defmodule SqlDust.PathUtils do
     end
   end
 
-  defp quote_alias(sql) do
-    "`#{sql}`"
+  defp quote_alias(sql, options) do
+    quotation_mark = case options.adapter do
+      :mysql -> "`"
+      _ -> '"'
+    end
+    "#{quotation_mark}#{sql}#{quotation_mark}"
   end
 end

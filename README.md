@@ -52,9 +52,9 @@ LEFT JOIN companies `company` ON `company`.id = `u`.company_id
 WHERE (`company`.id = 1982)
 
 :ok
-iex(3)> "users" |> to_sql |> IO.puts
-SELECT `u`.*
-FROM users `u`
+iex(3)> "users" |> adapter(:postgres) |> to_sql |> IO.puts
+SELECT "u".*
+FROM users "u"
 
 :ok
 iex(4)>
@@ -66,15 +66,15 @@ Composable queries using [Ecto](https://github.com/elixir-lang/ecto) models are 
 iex(1)> import Ecto.SqlDust
 nil
 iex(2)> Weather |> to_sql |> IO.puts
-SELECT `w`.*
-FROM weather `w`
+SELECT "w".*
+FROM weather "w"
 
 :ok
 iex(3)> City |> select("id, name, country.name") |> where("country.name = 'United States'") |> to_sql |> IO.puts
-SELECT `c`.id, `c`.name, `country`.name
-FROM cities `c`
-LEFT JOIN countries `country` ON `country`.id = `c`.country_id
-WHERE (`country`.name = 'United States')
+SELECT "c".id, "c".name, "country".name
+FROM cities "c"
+LEFT JOIN countries "country" ON "country".id = "c".country_id
+WHERE ("country".name = 'United States')
 
 :ok
 iex(4)>
@@ -181,15 +181,15 @@ City
 
 """
 SELECT
-  `c`.id,
-  `c`.name,
-  `country`.name,
-  `local_weather`.temp_lo,
-  `local_weather`.temp_hi
-FROM cities `c`
-LEFT JOIN countries `country` ON `country`.id = `c`.country_id
-LEFT JOIN weather `local_weather` ON `local_weather`.city_id = `c`.id
-WHERE (`local_weather`.wdate = '2015-09-12')
+  "c".id,
+  "c".name,
+  "country".name,
+  "local_weather".temp_lo,
+  "local_weather".temp_hi
+FROM cities "c"
+LEFT JOIN countries "country" ON "country".id = "c".country_id
+LEFT JOIN weather "local_weather" ON "local_weather".city_id = "c".id
+WHERE ("local_weather".wdate = '2015-09-12')
 """
 ```
 

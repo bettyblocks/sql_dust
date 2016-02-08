@@ -7,6 +7,7 @@ defmodule Ecto.SqlDust do
 
     options
       |> __from__(resource)
+      |> adapter(:postgres)
       |> schema(derived_schema)
   end
 
