@@ -411,4 +411,17 @@ defmodule SqlDustTest do
       ORDER BY `u`.id
       """
   end
+
+  test "downcasing base table alias" do
+    schema = %{
+      User: %{
+        table_name: "people"
+      }
+    }
+
+    assert SqlDust.from("User", %{}, schema) == """
+      SELECT `u`.*
+      FROM people `u`
+      """
+  end
 end
