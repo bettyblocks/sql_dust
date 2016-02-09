@@ -87,7 +87,7 @@ To install SqlDust, please do the following:
   1. Add sql_dust to your list of dependencies in `mix.exs`:
 
         def deps do
-          [{:sql_dust, "~> 0.0.1"}]
+          [{:sql_dust, "~> 0.1.1"}]
         end
 
   2. Ensure sql_dust is started before your application:
@@ -222,7 +222,7 @@ Run the following command for testing:
 
     mix test
 
-Every SqlDust feature is tested in [test/sql_dust_test.exs](https://github.com/archan937/sql_dust/blob/master/test/sql_dust_test.exs).
+All the SqlDust features are tested in [test/sql_dust_test.exs](https://github.com/archan937/sql_dust/blob/master/test/sql_dust_test.exs), [test/sql_dust/query_test.exs](https://github.com/archan937/sql_dust/blob/master/test/sql_dust/query_test.exs) and [test/ecto/sql_dust_test.exs](https://github.com/archan937/sql_dust/blob/master/test/ecto/sql_dust_test.exs).
 
 ## Nice To Have
 
