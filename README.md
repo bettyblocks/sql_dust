@@ -193,6 +193,27 @@ WHERE ("local_weather".wdate = '2015-09-12')
 """
 ```
 
+### MySQL versus Postgres
+
+At default, SqlDust generates queries with MySQL quotations except for when using Ecto models because then it defaults to Postgres. You can specify the adapter using the `adapter` function after having piped the Ecto model:
+
+```elixir
+import Ecto.SqlDust
+
+City
+  |> select("id, name")
+  |> adapter(:mysql)
+  |> to_sql
+  |> IO.puts
+
+"""
+SELECT `c`.id, `c`.name
+FROM cities `c`
+"""
+```
+
+SqlDust should automatically determine the correct database adapter of the Ecto model of course. So that will be added in the following release.
+
 Enjoy using SqlDust! ^^
 
 ## Testing
@@ -210,6 +231,7 @@ Every SqlDust feature is tested in [test/sql_dust_test.exs](https://github.com/a
 ## TODO
 
 * Prevent SQL injection attacks
+* Automatically derive database adapter using `Ecto.Repo`
 * Support `has through` associations
 * Support polymorphic associations
 * Add additional documentation to the README
