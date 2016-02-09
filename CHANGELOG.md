@@ -1,5 +1,9 @@
 ## SqlDust CHANGELOG
 
+### Version 0.1.2 (February 9, 2016)
+
+* Downcasing base table alias
+
 ### Version 0.1.1 (February 8, 2016)
 
 * Being able to compose Ecto based queries using `Ecto.SqlDust` (w00t! ^^)
