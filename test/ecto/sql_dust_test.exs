@@ -67,4 +67,25 @@ defmodule Ecto.SqlDustTest do
       WHERE ("local_weather".wdate = '2015-09-12')
       """
   end
+
+  test "support generating SQL based on Ecto model schemas for MySQL" do
+    sql = Test.City
+      |> select("id, name, country.name, local_weather.temp_lo, local_weather.temp_hi")
+      |> where("local_weather.wdate = '2015-09-12'")
+      |> adapter(:mysql)
+      |> to_sql
+
+    assert sql == """
+      SELECT
+        `c`.id,
+        `c`.name,
+        `country`.name,
+        `local_weather`.temp_lo,
+        `local_weather`.temp_hi
+      FROM cities `c`
+      LEFT JOIN countries `country` ON `country`.id = `c`.country_id
+      LEFT JOIN weather `local_weather` ON `local_weather`.city_id = `c`.id
+      WHERE (`local_weather`.wdate = '2015-09-12')
+      """
+  end
 end
