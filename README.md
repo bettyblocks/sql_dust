@@ -1,4 +1,4 @@
-# SqlDust [![Build Status](https://travis-ci.org/archan937/sql_dust.svg?branch=master)](https://travis-ci.org/archan937/sql_dust) [![Inline docs](http://inch-ci.org/github/archan937/sql_dust.svg)](http://inch-ci.org/github/archan937/sql_dust)
+# SqlDust [![Hex.pm](https://img.shields.io/hexpm/v/sql_dust.svg)](https://hex.pm/packages/sql_dust) [![Hex.pm](https://img.shields.io/hexpm/dt/sql_dust.svg)](https://hex.pm/packages/sql_dust) [![Build Status](https://travis-ci.org/archan937/sql_dust.svg?branch=master)](https://travis-ci.org/archan937/sql_dust) [![Inline docs](http://inch-ci.org/github/archan937/sql_dust.svg)](http://inch-ci.org/github/archan937/sql_dust)
 
 Easy. Simple. Powerful. Generate (complex) SQL queries using magical Elixir SQL dust.
 
@@ -87,7 +87,7 @@ To install SqlDust, please do the following:
   1. Add sql_dust to your list of dependencies in `mix.exs`:
 
         def deps do
-          [{:sql_dust, "~> 0.1.1"}]
+          [{:sql_dust, "~> 0.1.2"}]
         end
 
   2. Ensure sql_dust is started before your application:
@@ -151,7 +151,8 @@ As of version `0.1.0`, it is to possible compose queries (thanks to [Justin Work
 import SqlDust.Query
 
 select("id, last_name, first_name")
-  |> from("users") |> where("company.id = 1982")
+  |> from("users")
+  |> where("company.id = 1982")
   |> where("last_name LIKE '%Engel%'")
   |> order_by(["last_name", "first_name"])
   |> to_sql
