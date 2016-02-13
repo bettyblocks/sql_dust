@@ -5,7 +5,7 @@ defmodule SqlDust do
   import SqlDust.JoinUtils
   alias SqlDust.MapUtils
 
-  defstruct [:select, :from, :where, :group_by, :order_by, :limit, :schema, :adapter]
+  defstruct [:select, :from, :where, :group_by, :order_by, :limit, :offset, :schema, :adapter]
 
   @moduledoc """
     SqlDust is a module that generates SQL queries as intuitively as possible.
@@ -31,6 +31,7 @@ defmodule SqlDust do
       |> derive_group_by
       |> derive_order_by
       |> derive_limit
+      |> derive_offset
       |> derive_joins
       |> compose_sql
   end
@@ -129,6 +130,14 @@ defmodule SqlDust do
     end
   end
 
+  defp derive_offset(options) do
+    if offset = MapUtils.get(options, :offset) do
+      Map.put(options, :offset, "OFFSET #{offset}")
+    else
+      options
+    end
+  end
+
   defp compose_sql(options) do
     [
       options.select,
@@ -139,6 +148,7 @@ defmodule SqlDust do
       options[:having],
       options[:order_by],
       options[:limit],
+      options[:offset],
       ""
     ]
       |> List.flatten

@@ -22,6 +22,9 @@ defmodule SqlDust.ComposeUtils do
       def limit(resource)              do limit(options, resource) end
       def limit(options, resource)     do put(options, :limit, resource) end
 
+      def offset(resource)              do offset(options, resource) end
+      def offset(options, resource)     do put(options, :offset, resource) end
+
       def adapter(name)                do adapter(options, name) end
       def adapter(options, name)       do put(options, :adapter, name) end
 

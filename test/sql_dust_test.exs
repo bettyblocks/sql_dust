@@ -297,6 +297,20 @@ defmodule SqlDustTest do
       """
   end
 
+  test "adding an offset to the query result" do
+    options = %{
+      limit: 10,
+      offset: 20
+    }
+
+    assert SqlDust.from("users", options) == """
+      SELECT `u`.*
+      FROM users `u`
+      LIMIT 10
+      OFFSET 20
+      """
+  end
+
   test "DirectiveRecord example 1 (with additional WHERE statements)" do
     options = %{
       select: "id, name, COUNT(orders.id) AS order_count, GROUP_CONCAT(DISTINCT tags.name) AS tags, foo.tags",

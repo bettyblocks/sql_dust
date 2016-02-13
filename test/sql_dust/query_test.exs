@@ -196,6 +196,35 @@ defmodule SqlDust.QueryTest do
     }
   end
 
+  test "offset returns SqlDust containing :offset option" do
+    query_dust = offset(10)
+
+    assert query_dust == %SqlDust{
+      offset: 10
+    }
+  end
+
+  test "offset sets :offset option of passed SqlDust" do
+    query_dust = select("id")
+      |> offset(10)
+
+    assert query_dust == %SqlDust{
+      select: ["id"],
+      offset: 10
+    }
+  end
+
+  test "offset overwrites :offset option within passed SqlDust" do
+    query_dust = select("id")
+      |> offset(10)
+      |> offset(100)
+
+    assert query_dust == %SqlDust{
+      select: ["id"],
+      offset: 100
+    }
+  end
+
   test "schema returns SqlDust containing :schema option" do
     query_dust = schema(%{
       "users": %{
