@@ -1,5 +1,10 @@
 ## SqlDust CHANGELOG
 
+### Version 0.1.3 (February 14, 2016)
+
+* Being able to define OFFSET
+* Made Ecto dependency optional
+
 ### Version 0.1.2 (February 9, 2016)
 
 * Downcasing base table alias
