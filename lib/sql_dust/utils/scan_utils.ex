@@ -66,7 +66,7 @@ defmodule SqlDust.ScanUtils do
   end
 
   def scan_aliases(sql) do
-    Regex.scan(~r/ AS \w+$/i, sql)
+    Regex.scan(~r/ AS .+$/i, sql)
   end
 
   def scan_reserved_words(sql) do

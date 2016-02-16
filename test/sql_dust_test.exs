@@ -311,11 +311,40 @@ defmodule SqlDustTest do
       """
   end
 
+  test "quotes SELECT statement aliases" do
+    options = %{
+      select: "id AS foo.bar",
+    }
+
+    assert SqlDust.from("users", options) == """
+      SELECT `u`.id AS `foo.bar`
+      FROM users `u`
+      """
+  end
+
+  test "putting quoted SELECT statement aliases either in the WHERE or HAVING statement" do
+    options = %{
+      select: "id AS id, CONCAT(first_name, ' ', last_name) AS name, company.name AS company.name",
+      where: ["id <= 1982", "name LIKE '%Engel%'", "company.name LIKE '%Inc%'"]
+    }
+
+    assert SqlDust.from("users", options) == """
+      SELECT
+        `u`.id AS `id`,
+        CONCAT(`u`.first_name, ' ', `u`.last_name) AS `name`,
+        `company`.name AS `company.name`
+      FROM users `u`
+      LEFT JOIN companies `company` ON `company`.id = `u`.company_id
+      WHERE (`u`.id <= 1982) AND (`company`.name LIKE '%Inc%')
+      HAVING (`name` LIKE '%Engel%')
+      """
+  end
+
   test "DirectiveRecord example 1 (with additional WHERE statements)" do
     options = %{
-      select: "id, name, COUNT(orders.id) AS order_count, GROUP_CONCAT(DISTINCT tags.name) AS tags, foo.tags",
+      select: "id, name, COUNT(orders.id) AS order.count, GROUP_CONCAT(DISTINCT tags.name) AS tags, foo.tags",
       group_by: "id",
-      where: ["name LIKE '%Paul%'", "order_count > 5", "foo.tags = 1"],
+      where: ["name LIKE '%Paul%'", "order.count > 5", "foo.tags = 1"],
       order_by: "COUNT(DISTINCT tags.id) DESC",
       limit: 5
     }
@@ -331,8 +360,8 @@ defmodule SqlDustTest do
       SELECT
         `c`.id,
         `c`.name,
-        COUNT(`orders`.id) AS order_count,
-        GROUP_CONCAT(DISTINCT `tags`.name) AS tags,
+        COUNT(`orders`.id) AS `order.count`,
+        GROUP_CONCAT(DISTINCT `tags`.name) AS `tags`,
         `foo`.tags
       FROM customers `c`
       LEFT JOIN orders `orders` ON `orders`.customer_id = `c`.id
@@ -341,7 +370,7 @@ defmodule SqlDustTest do
       LEFT JOIN foos `foo` ON `foo`.id = `c`.foo_id
       WHERE (`c`.name LIKE '%Paul%') AND (`foo`.tags = 1)
       GROUP BY `c`.id
-      HAVING (order_count > 5)
+      HAVING (`order.count` > 5)
       ORDER BY COUNT(DISTINCT `tags`.id) DESC
       LIMIT 5
       """
@@ -403,11 +432,11 @@ defmodule SqlDustTest do
       SELECT
         `c`.id,
         `c`.name,
-        COUNT(`orders`.id) AS order_count
+        COUNT(`orders`.id) AS `order_count`
       FROM customers `c`
       LEFT JOIN orders `orders` ON `orders`.customer_id = `c`.id
       GROUP BY `c`.id
-      HAVING (order_count > 3)
+      HAVING (`order_count` > 3)
       """
   end
 
@@ -419,9 +448,9 @@ defmodule SqlDustTest do
     }
 
     assert SqlDust.from("users", options) == """
-      SELECT `u`.id AS identifier
+      SELECT `u`.id AS `identifier`
       FROM users `u`
-      HAVING (identifier > 0 AND `u`.id != 2)
+      HAVING (`identifier` > 0 AND `u`.id != 2)
       ORDER BY `u`.id
       """
   end

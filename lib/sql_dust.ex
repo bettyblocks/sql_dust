@@ -37,9 +37,14 @@ defmodule SqlDust do
   end
 
   defp derive_select(options) do
-    {select, options} = options[:select]
-      |> split_arguments
+    list = split_arguments(options[:select])
+
+    {select, options} = list
       |> prepend_path_aliases(options)
+
+    options = Map.put(options, :aliases, Enum.reject(options.aliases, fn(sql_alias) ->
+                Enum.member?(list, sql_alias <> " AS " <> sql_alias)
+              end))
 
     prefix = if String.length(Enum.join(select, ", ")) > 45 do
       "\n  "

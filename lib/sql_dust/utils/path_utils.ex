@@ -23,8 +23,19 @@ defmodule SqlDust.PathUtils do
       |> Enum.uniq
 
     excluded = excluded
+      |> Enum.map(fn(excluded) ->
+        regex = ~r/^( AS )(.+)/i
+        if Regex.match?(regex, excluded) do
+          {_, compiled} = Regex.compile(excluded)
+          [compiled, Regex.replace(regex, excluded, fn(_, as, path) ->
+            as <> quote_alias(path, options)
+          end)]
+        else
+          excluded
+        end
+      end)
       |> Enum.concat(Enum.map(aliases, fn(sql_alias) ->
-        [~r/([^\.\w])#{sql_alias}([^\.\w])/, sql_alias]
+        [~r/([^\.\w])#{sql_alias}([^\.\w])/, quote_alias(sql_alias, options)]
       end))
 
     options = Map.put(options, :aliases, aliases)
