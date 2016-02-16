@@ -1,5 +1,10 @@
 ## SqlDust CHANGELOG
 
+### Version 0.1.4 (February 16, 2016)
+
+* Quoting SELECT statement aliases
+* Supporting paths as SELECT statement aliases
+
 ### Version 0.1.3 (February 14, 2016)
 
 * Being able to define OFFSET
