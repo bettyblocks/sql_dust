@@ -311,7 +311,7 @@ defmodule SqlDustTest do
       """
   end
 
-  test "quotes SELECT statement aliases" do
+  test "quoting SELECT statement aliases" do
     options = %{
       select: "id AS foo.bar",
     }
@@ -337,6 +337,18 @@ defmodule SqlDustTest do
       LEFT JOIN companies `company` ON `company`.id = `u`.company_id
       WHERE (`u`.id <= 1982) AND (`company`.name LIKE '%Inc%')
       HAVING (`name` LIKE '%Engel%')
+      """
+  end
+
+  test "respecting preserved word NULL" do
+    options = %{
+      where: "name IS NOT NULL",
+    }
+
+    assert SqlDust.from("users", options) == """
+      SELECT `u`.*
+      FROM users `u`
+      WHERE (`u`.name IS NOT NULL)
       """
   end
 
