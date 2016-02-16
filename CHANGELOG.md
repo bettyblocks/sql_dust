@@ -1,5 +1,9 @@
 ## SqlDust CHANGELOG
 
+### Version 0.1.5 (February 16, 2016)
+
+* Respecting preserved word NULL
+
 ### Version 0.1.4 (February 16, 2016)
 
 * Quoting SELECT statement aliases
