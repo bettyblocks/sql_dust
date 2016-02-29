@@ -37,6 +37,15 @@ defmodule SqlDust.JoinUtils do
     }
   end
 
+  defp derive_schema_joins(macro, schema1, schema2, association) when macro == :has_one do
+    %{
+      table: schema2.table_name,
+      path: schema2.path,
+      left_key: "#{schema2.path}.#{association.primary_key}",
+      right_key: "#{schema1.path}.#{association.foreign_key}"
+    }
+  end
+
   defp derive_schema_joins(macro, schema1, schema2, association) when macro == :has_many do
     %{
       table: schema2.table_name,
