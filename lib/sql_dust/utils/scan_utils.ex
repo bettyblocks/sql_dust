@@ -49,7 +49,8 @@ defmodule SqlDust.ScanUtils do
 
   def scan_quoted(sql) do
     Regex.scan(~r/(["'])(?:(?=(\\?))\2.)*?\1/, sql)
-      |> Enum.reduce([], fn([match, _, _], quoted) ->
+      |> Enum.reduce([], fn(match, quoted) ->
+        match = hd(match)
         case match do
           "" -> quoted
           _ -> List.insert_at(quoted, -1, match)

@@ -364,6 +364,18 @@ defmodule SqlDustTest do
       """
   end
 
+  test "handling '' within WHERE statements" do
+    options = %{
+      where: "name = ''",
+    }
+
+    assert SqlDust.from("users", options) == """
+      SELECT `u`.*
+      FROM users `u`
+      WHERE (`u`.name = '')
+      """
+  end
+
   test "DirectiveRecord example 1 (with additional WHERE statements)" do
     options = %{
       select: "id, name, COUNT(orders.id) AS order.count, GROUP_CONCAT(DISTINCT tags.name) AS tags, foo.tags",
