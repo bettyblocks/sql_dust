@@ -1,5 +1,10 @@
 ## SqlDust CHANGELOG
 
+### Version 0.1.7 (March 4, 2016)
+
+* Tackled error when having `''` within WHERE statements (thanks @nulian)
+* Supporting has_one associations
+
 ### Version 0.1.6 (February 29, 2016)
 
 * Respecting booleans
