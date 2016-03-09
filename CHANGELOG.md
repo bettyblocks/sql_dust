@@ -1,5 +1,9 @@
 ## SqlDust CHANGELOG
 
+### Version 0.1.9 (March 9, 2016)
+
+* Being able to override the table name of an association
+
 ### Version 0.1.8 (March 9, 2016)
 
 * Fixed missing :offset statement when specifying during query composing
