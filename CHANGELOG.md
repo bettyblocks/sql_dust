@@ -1,5 +1,9 @@
 ## SqlDust CHANGELOG
 
+### Version 0.1.8 (March 9, 2016)
+
+* Fixed missing :offset statement when specifying during query composing
+
 ### Version 0.1.7 (March 4, 2016)
 
 * Tackled error when having `''` within WHERE statements (thanks @nulian)
