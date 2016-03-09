@@ -219,6 +219,26 @@ defmodule SqlDustTest do
       """
   end
 
+  test "overriding the table name of an association" do
+    options = %{
+      select: ["id", "description", "CONCAT(assignee.first_name, ' ', assignee.last_name)"]
+    }
+    schema = %{
+      "issues": %{
+        assignee: %{table_name: "users"}
+      }
+    }
+
+    assert SqlDust.from("issues", options, schema) == """
+      SELECT
+        `i`.id,
+        `i`.description,
+        CONCAT(`assignee`.first_name, ' ', `assignee`.last_name)
+      FROM issues `i`
+      LEFT JOIN users `assignee` ON `assignee`.id = `i`.assignee_id
+      """
+  end
+
   test "overriding the bridge table of a has and belongs to many association" do
     options = %{
       select: "id, first_name, last_name, GROUP_CONCAT(skills.name)"
