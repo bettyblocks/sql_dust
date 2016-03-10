@@ -30,10 +30,10 @@ defmodule SqlDust.SchemaUtils do
 
   def resource_schema(resource, association, options) do
     schema = MapUtils.get(options.schema, resource, %{})
-    macro = MapUtils.get(MapUtils.get(schema, association, %{}), :macro)
+    cardinality = MapUtils.get(MapUtils.get(schema, association, %{}), :cardinality)
 
     defacto_schema(resource)
-      |> Map.merge(defacto_association(resource, association, macro))
+      |> Map.merge(defacto_association(resource, association, cardinality))
       |> MapUtils.deep_merge(schema)
   end
 
@@ -46,10 +46,10 @@ defmodule SqlDust.SchemaUtils do
 
   defp defacto_association(_, association, _) when is_nil(association), do: %{}
 
-  defp defacto_association(resource, association, macro) do
-    macro = macro || derive_macro(association)
+  defp defacto_association(resource, association, cardinality) do
+    cardinality = cardinality || derive_cardinality(association)
 
-    map = case macro do
+    map = case cardinality do
       :belongs_to -> %{
         primary_key: "id",
         foreign_key: "#{association}_id"
@@ -70,13 +70,13 @@ defmodule SqlDust.SchemaUtils do
         association_foreign_key: "#{Inflex.singularize(association)}_id"
       }
     end
-      |> Map.put(:macro, macro)
+      |> Map.put(:cardinality, cardinality)
 
     %{}
       |> Map.put(association, map)
   end
 
-  defp derive_macro(association) do
+  defp derive_cardinality(association) do
     if Inflex.singularize(association) == association do
       :belongs_to
     else

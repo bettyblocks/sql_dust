@@ -156,7 +156,7 @@ defmodule SqlDustTest do
     schema = %{
       "users": %{
         "skills": %{
-          macro: :has_and_belongs_to_many
+          cardinality: :has_and_belongs_to_many
         }
       }
     }
@@ -181,7 +181,7 @@ defmodule SqlDustTest do
     schema = %{
       "products": %{
         current_price: %{
-          macro: :has_one,
+          cardinality: :has_one,
           resource: "prices"
         }
       }
@@ -203,7 +203,7 @@ defmodule SqlDustTest do
     schema = %{
       "products": %{
         current_price: %{
-          macro: :has_one,
+          cardinality: :has_one,
           resource: "prices"
         }
       }
@@ -223,7 +223,7 @@ defmodule SqlDustTest do
     schema = %{
       "products": %{
         current_price: %{
-          macro: :has_one,
+          cardinality: :has_one,
           resource: "prices",
           join_on: "latest = 1"
         }
@@ -247,7 +247,7 @@ defmodule SqlDustTest do
     schema = %{
       "products": %{
         current_statistic: %{
-          macro: :has_one,
+          cardinality: :has_one,
           resource: "statistics",
           join_on: "scope = <<scope>>"
         }
@@ -268,7 +268,7 @@ defmodule SqlDustTest do
     schema = %{
       "companies": %{
         tags: %{
-          macro: :has_and_belongs_to_many
+          cardinality: :has_and_belongs_to_many
         }
       }
     }
@@ -346,7 +346,7 @@ defmodule SqlDustTest do
     schema = %{
       "users": %{
         "skills": %{
-          macro: :has_and_belongs_to_many,
+          cardinality: :has_and_belongs_to_many,
           bridge_table: "skill_set",
           foreign_key: "person_id"
         }
@@ -507,7 +507,7 @@ defmodule SqlDustTest do
     schema = %{
       customers: %{
         tags: %{
-          macro: :has_and_belongs_to_many
+          cardinality: :has_and_belongs_to_many
         }
       }
     }
@@ -539,7 +539,7 @@ defmodule SqlDustTest do
     schema = %{
       "customers": %{
         tags: %{
-          "macro": :has_and_belongs_to_many
+          "cardinality": :has_and_belongs_to_many
         }
       }
     }
@@ -562,7 +562,7 @@ defmodule SqlDustTest do
     schema = %{
       customers: %{
         tags: %{
-          "macro": :has_and_belongs_to_many
+          "cardinality": :has_and_belongs_to_many
         }
       }
     }

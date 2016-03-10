@@ -229,7 +229,7 @@ defmodule SqlDust.QueryTest do
     query_dust = schema(%{
       "users": %{
         "skills": %{
-          macro: :has_and_belongs_to_many
+          cardinality: :has_and_belongs_to_many
         }
       }
     })
@@ -238,7 +238,7 @@ defmodule SqlDust.QueryTest do
       schema: %{
         users: %{
           skills: %{
-            macro: :has_and_belongs_to_many
+            cardinality: :has_and_belongs_to_many
           }
         }
       }
@@ -250,7 +250,7 @@ defmodule SqlDust.QueryTest do
         %{
           "users": %{
             "skills": %{
-              macro: :has_and_belongs_to_many
+              cardinality: :has_and_belongs_to_many
             }
           }
         }
@@ -272,7 +272,7 @@ defmodule SqlDust.QueryTest do
       schema: %{
         users: %{
           skills: %{
-            macro: :has_and_belongs_to_many,
+            cardinality: :has_and_belongs_to_many,
             primary_key: "identifier"
           }
         },
@@ -303,7 +303,7 @@ defmodule SqlDust.QueryTest do
       |> schema(
         %{
           users: %{"table_name": "people"},
-          companies: %{"address": %{macro: :has_one}}
+          companies: %{"address": %{cardinality: :has_one}}
         }
       )
       |> to_sql

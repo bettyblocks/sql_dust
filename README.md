@@ -116,7 +116,7 @@ options = %{
 schema = %{
   customers: %{
     tags: %{
-      macro: :has_and_belongs_to_many
+      cardinality: :has_and_belongs_to_many
     }
   }
 }

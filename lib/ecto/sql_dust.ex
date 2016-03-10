@@ -54,7 +54,7 @@ defmodule Ecto.SqlDust do
   end
 
   defp derive_association(reflection) do
-    macro = case reflection.__struct__ do
+    cardinality = case reflection.__struct__ do
       Ecto.Association.BelongsTo -> :belongs_to
       Ecto.Association.Has ->
         case reflection.cardinality do
@@ -65,26 +65,26 @@ defmodule Ecto.SqlDust do
     end
 
     Map.merge(%{
-      macro: macro,
+      cardinality: cardinality,
       resource: reflection.related.__schema__(:source)
-    }, derive_association(macro, reflection))
+    }, derive_association(cardinality, reflection))
   end
 
-  defp derive_association(macro, reflection) when macro == :belongs_to do
+  defp derive_association(:belongs_to, reflection) do
     %{
       primary_key: Atom.to_string(reflection.related_key),
       foreign_key: Atom.to_string(reflection.owner_key)
     }
   end
 
-  defp derive_association(macro, reflection) when macro == :has_one do
+  defp derive_association(:has_one, reflection) do
     %{
       primary_key: Atom.to_string(reflection.owner_key),
       foreign_key: Atom.to_string(reflection.related_key)
     }
   end
 
-  defp derive_association(macro, reflection) when macro == :has_many do
+  defp derive_association(:has_many, reflection) do
     %{
       primary_key: Atom.to_string(reflection.owner_key),
       foreign_key: Atom.to_string(reflection.related_key)
@@ -92,7 +92,7 @@ defmodule Ecto.SqlDust do
   end
 
   # ???
-  # defp derive_association(macro, reflection) when macro == :has_and_belongs_to_many do
+  # defp derive_association(:has_and_belongs_to_many, reflection) do
   #   %{
   #     # bridge_table: ([Inflex.pluralize(resource), Inflex.pluralize(association)] |> Enum.sort |> Enum.join("_")),
   #     # primary_key: "id",

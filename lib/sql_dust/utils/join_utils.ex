@@ -26,7 +26,7 @@ defmodule SqlDust.JoinUtils do
 
     association = MapUtils.get(schema1, association)
 
-    derive_schema_joins(association.macro, schema1, schema2, association)
+    derive_schema_joins(association.cardinality, schema1, schema2, association)
   end
 
   defp derive_schema_joins(:belongs_to, schema1, schema2, association) do
