@@ -32,20 +32,20 @@ defmodule Ecto.SqlDustTest do
     sql = Test.Weather
       |> to_sql
 
-    assert sql == """
+    assert sql == {"""
       SELECT "w".*
       FROM weather "w"
-      """
+      """, []}
   end
 
   test "generates simple SQL based on Ecto model schemas (using from)" do
     sql = from(Test.Weather)
       |> to_sql
 
-    assert sql == """
+    assert sql == {"""
       SELECT "w".*
       FROM weather "w"
-      """
+      """, []}
   end
 
   test "generates SQL based on Ecto model schemas" do
@@ -54,7 +54,7 @@ defmodule Ecto.SqlDustTest do
       |> where("local_weather.wdate = '2015-09-12'")
       |> to_sql
 
-    assert sql == """
+    assert sql == {"""
       SELECT
         "c".id,
         "c".name,
@@ -65,7 +65,7 @@ defmodule Ecto.SqlDustTest do
       LEFT JOIN countries "country" ON "country".id = "c".country_id
       LEFT JOIN weather "local_weather" ON "local_weather".city_id = "c".id
       WHERE ("local_weather".wdate = '2015-09-12')
-      """
+      """, []}
   end
 
   test "support generating SQL based on Ecto model schemas for MySQL" do
@@ -75,7 +75,7 @@ defmodule Ecto.SqlDustTest do
       |> adapter(:mysql)
       |> to_sql
 
-    assert sql == """
+    assert sql == {"""
       SELECT
         `c`.id,
         `c`.name,
@@ -86,6 +86,6 @@ defmodule Ecto.SqlDustTest do
       LEFT JOIN countries `country` ON `country`.id = `c`.country_id
       LEFT JOIN weather `local_weather` ON `local_weather`.city_id = `c`.id
       WHERE (`local_weather`.wdate = '2015-09-12')
-      """
+      """, []}
   end
 end

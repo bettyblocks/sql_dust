@@ -1,8 +1,6 @@
 defmodule SqlDust.ScanUtils do
   alias SqlDust.MapUtils
 
-  @variable_not_found :variable_not_found
-
   def split_arguments(sql) when is_list(sql) do
     sql
       |> List.flatten
@@ -105,15 +103,17 @@ defmodule SqlDust.ScanUtils do
     end)
   end
 
-  def interpolate_variables(sql, variables) do
+  def process_variables(sql, variables) do
     excluded = scan_quoted(sql)
     sql = numerize_patterns(sql, excluded)
 
-    sql = Regex.replace(~r/<<(\w+)>>/, sql, fn(_, name) ->
-      value = MapUtils.get(variables, name, @variable_not_found)
-      if value == @variable_not_found, do: "<<" <> name <> ">>", else: inspect(value)
-    end)
+    {sql, values} = Regex.scan(~r/<<(\w+)>>/, sql)
+                    |> Enum.reduce({sql, []}, fn([match, name], {sql, values}) ->
+                      values = values |> List.insert_at(-1, MapUtils.get(variables, name))
+                      sql = String.replace sql, match, "?", global: false
+                      {sql, values}
+                    end)
 
-    interpolate_patterns(sql, excluded)
+    {interpolate_patterns(sql, excluded), values}
   end
 end

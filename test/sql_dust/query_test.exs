@@ -308,7 +308,7 @@ defmodule SqlDust.QueryTest do
       )
       |> to_sql
 
-    assert sql == """
+    assert sql == {"""
       SELECT
         `u`.id,
         `u`.name,
@@ -320,6 +320,6 @@ defmodule SqlDust.QueryTest do
       WHERE (`u`.id > 100) AND (`company`.name LIKE '%Engel%')
       ORDER BY `u`.name, `company`.name
       LIMIT 20
-      """
+      """, []}
   end
 end

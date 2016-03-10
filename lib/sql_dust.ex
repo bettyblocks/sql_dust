@@ -77,8 +77,8 @@ defmodule SqlDust do
 
   defp derive_where(options) do
     if where = MapUtils.get(options, :where) do
-      {having, where} = [where]
-        |> List.flatten
+      {having, where} = where
+        |> List.wrap
         |> Enum.map(fn(sql) -> "(#{sql})" end)
         |> Enum.partition(fn(sql) ->
           sql = sanitize_sql(sql)
@@ -162,6 +162,6 @@ defmodule SqlDust do
         fn(x) -> is_nil(x) end
       )
       |> Enum.join("\n")
-      |> interpolate_variables(options.variables)
+      |> process_variables(options.variables)
   end
 end
