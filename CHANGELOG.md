@@ -1,5 +1,10 @@
 ## SqlDust CHANGELOG
 
+### Version 0.1.11 (March 10, 2016)
+
+* Being able to specify additional join conditions using :join_on / #join_on
+* Being able to specify additional join conditions within the schema
+
 ### Version 0.1.10 (March 10, 2016)
 
 * Corrected has_one join specification
