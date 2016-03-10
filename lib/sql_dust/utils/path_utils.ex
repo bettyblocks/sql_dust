@@ -54,7 +54,7 @@ defmodule SqlDust.PathUtils do
     end)
   end
 
-  defp scan_excluded(sql) do
+  def scan_excluded(sql) do
     excluded = []
       |> Enum.concat(scan_quoted(sql))
       |> Enum.concat(scan_functions(sql))

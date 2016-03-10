@@ -213,7 +213,7 @@ defmodule SqlDustTest do
         current_price: %{
           macro: :has_one,
           resource: "prices",
-          join_on: "current_price.latest = 1"
+          join_on: "latest = 1"
         }
       }
     }

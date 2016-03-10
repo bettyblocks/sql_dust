@@ -2,6 +2,7 @@ defmodule SqlDust.JoinUtils do
   alias SqlDust.MapUtils
   import SqlDust.SchemaUtils
   import SqlDust.PathUtils
+  import SqlDust.ScanUtils
 
   def derive_joins(path, options) do
     {path, association} = dissect_path(path)
@@ -28,34 +29,37 @@ defmodule SqlDust.JoinUtils do
     derive_schema_joins(association.macro, schema1, schema2, association)
   end
 
-  defp derive_schema_joins(macro, schema1, schema2, association) when macro == :belongs_to do
+  defp derive_schema_joins(:belongs_to, schema1, schema2, association) do
     %{
       table: association[:table_name] || schema2.table_name,
       path: schema2.path,
       left_key: "#{schema2.path}.#{association.primary_key}",
-      right_key: "#{schema1.path}.#{association.foreign_key}"
-    } |> Map.merge(Map.take(association, [:join_on]))
+      right_key: "#{schema1.path}.#{association.foreign_key}",
+      join_on: derive_join_on(schema2.path, association)
+    }
   end
 
-  defp derive_schema_joins(macro, schema1, schema2, association) when macro == :has_one do
+  defp derive_schema_joins(:has_one, schema1, schema2, association) do
     %{
       table: association[:table_name] || schema2.table_name,
       path: schema2.path,
       left_key: "#{schema2.path}.#{association.foreign_key}",
-      right_key: "#{schema1.path}.#{association.primary_key}"
-    } |> Map.merge(Map.take(association, [:join_on]))
+      right_key: "#{schema1.path}.#{association.primary_key}",
+      join_on: derive_join_on(schema2.path, association)
+    }
   end
 
-  defp derive_schema_joins(macro, schema1, schema2, association) when macro == :has_many do
+  defp derive_schema_joins(:has_many, schema1, schema2, association) do
     %{
       table: association[:table_name] || schema2.table_name,
       path: schema2.path,
       left_key: "#{schema2.path}.#{association.foreign_key}",
-      right_key: "#{schema1.path}.#{association.primary_key}"
-    } |> Map.merge(Map.take(association, [:join_on]))
+      right_key: "#{schema1.path}.#{association.primary_key}",
+      join_on: derive_join_on(schema2.path, association)
+    }
   end
 
-  defp derive_schema_joins(macro, schema1, schema2, association) when macro == :has_and_belongs_to_many do
+  defp derive_schema_joins(:has_and_belongs_to_many, schema1, schema2, association) do
     [
       %{
         table: association.bridge_table,
@@ -69,6 +73,21 @@ defmodule SqlDust.JoinUtils do
         right_key: "#{schema2.path}_bridge_table.#{association.association_foreign_key}"
       }
     ]
+  end
+
+  defp derive_join_on(path, association) do
+    regex = ~r/(?:\.\*|[a-zA-Z]\w+(?:\.(?:\*|\w{2,}))*)/
+
+    association[:join_on]
+      |> List.wrap
+      |> Enum.map(fn(sql) ->
+        {excluded, _} = scan_excluded(sql)
+        sql = numerize_patterns(sql, excluded)
+        sql = Regex.replace(regex, sql, fn(match) ->
+          path <> "." <> match
+        end)
+        interpolate_patterns(sql, excluded)
+      end)
   end
 
   defp compose_sql(table_joins, options) when is_map(table_joins) do
