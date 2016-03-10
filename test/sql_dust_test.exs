@@ -161,6 +161,28 @@ defmodule SqlDustTest do
       """
   end
 
+  test "selecting columns of a 'has one' association" do
+    options = %{
+      select: "id, name, current_price.amount",
+      group_by: "id"
+    }
+    schema = %{
+      "products": %{
+        current_price: %{
+          macro: :has_one,
+          resource: "prices"
+        }
+      }
+    }
+
+    assert SqlDust.from("products", options, schema) == """
+      SELECT `p`.id, `p`.name, `current_price`.amount
+      FROM products `p`
+      LEFT JOIN prices `current_price` ON `current_price`.product_id = `p`.id
+      GROUP BY `p`.id
+      """
+  end
+
   test "selecting columns of a nested 'has and belongs to many' association" do
     options = %{
       select: "id, first_name, last_name, GROUP_CONCAT(company.tags.name)"

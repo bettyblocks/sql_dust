@@ -41,8 +41,8 @@ defmodule SqlDust.JoinUtils do
     %{
       table: association[:table_name] || schema2.table_name,
       path: schema2.path,
-      left_key: "#{schema2.path}.#{association.primary_key}",
-      right_key: "#{schema1.path}.#{association.foreign_key}"
+      left_key: "#{schema2.path}.#{association.foreign_key}",
+      right_key: "#{schema1.path}.#{association.primary_key}"
     }
   end
 
