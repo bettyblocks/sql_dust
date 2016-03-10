@@ -204,6 +204,27 @@ defmodule SqlDustTest do
       """
   end
 
+  test "adding join conditions within the schema" do
+    options = %{
+      select: "id, name, current_price.amount"
+    }
+    schema = %{
+      "products": %{
+        current_price: %{
+          macro: :has_one,
+          resource: "prices",
+          join_on: "current_price.latest = 1"
+        }
+      }
+    }
+
+    assert SqlDust.from("products", options, schema) == """
+      SELECT `p`.id, `p`.name, `current_price`.amount
+      FROM products `p`
+      LEFT JOIN prices `current_price` ON `current_price`.product_id = `p`.id AND `current_price`.latest = 1
+      """
+  end
+
   test "selecting columns of a nested 'has and belongs to many' association" do
     options = %{
       select: "id, first_name, last_name, GROUP_CONCAT(company.tags.name)"

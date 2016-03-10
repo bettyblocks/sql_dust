@@ -34,7 +34,7 @@ defmodule SqlDust.JoinUtils do
       path: schema2.path,
       left_key: "#{schema2.path}.#{association.primary_key}",
       right_key: "#{schema1.path}.#{association.foreign_key}"
-    }
+    } |> Map.merge(Map.take(association, [:join_on]))
   end
 
   defp derive_schema_joins(macro, schema1, schema2, association) when macro == :has_one do
@@ -43,7 +43,7 @@ defmodule SqlDust.JoinUtils do
       path: schema2.path,
       left_key: "#{schema2.path}.#{association.foreign_key}",
       right_key: "#{schema1.path}.#{association.primary_key}"
-    }
+    } |> Map.merge(Map.take(association, [:join_on]))
   end
 
   defp derive_schema_joins(macro, schema1, schema2, association) when macro == :has_many do
@@ -52,7 +52,7 @@ defmodule SqlDust.JoinUtils do
       path: schema2.path,
       left_key: "#{schema2.path}.#{association.foreign_key}",
       right_key: "#{schema1.path}.#{association.primary_key}"
-    }
+    } |> Map.merge(Map.take(association, [:join_on]))
   end
 
   defp derive_schema_joins(macro, schema1, schema2, association) when macro == :has_and_belongs_to_many do
@@ -81,14 +81,21 @@ defmodule SqlDust.JoinUtils do
         {left_key, _} = prepend_path_alias(join.left_key, options)
         {right_key, _} = prepend_path_alias(join.right_key, options)
 
+        additional_conditions = join[:join_on]
+                                  |> List.wrap
+                                  |> Enum.concat(additional_join_conditions(join.path, options))
+                                  |> Enum.map(fn(statement) ->
+                                    elem prepend_path_aliases(statement, options), 0
+                                  end)
+
         conditions = [left_key <> " = " <> right_key]
-                       |> Enum.concat(additional_join_conditions(join.path, options))
+                       |> Enum.concat(additional_conditions)
                        |> Enum.join(" AND ")
 
         [
           "LEFT JOIN", join.table, derive_quoted_path_alias(join.path, options),
           "ON", conditions
-        ] |>  Enum.join(" ")
+        ] |> Enum.join(" ")
       end)
   end
 
@@ -103,7 +110,7 @@ defmodule SqlDust.JoinUtils do
       |> Enum.reduce([], fn(statement, conditions) ->
         {sql, _} = prepend_path_aliases(statement, options)
         if String.contains?(sql, path_alias) do
-          conditions |> List.insert_at(-1, sql)
+          conditions |> List.insert_at(-1, statement)
         else
           conditions
         end
