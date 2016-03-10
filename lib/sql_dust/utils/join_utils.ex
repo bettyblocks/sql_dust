@@ -80,10 +80,35 @@ defmodule SqlDust.JoinUtils do
       |> Enum.map(fn(join) ->
         {left_key, _} = prepend_path_alias(join.left_key, options)
         {right_key, _} = prepend_path_alias(join.right_key, options)
+
+        conditions = [left_key <> " = " <> right_key]
+                       |> Enum.concat(additional_join_conditions(join.path, options))
+                       |> Enum.join(" AND ")
+
         [
           "LEFT JOIN", join.table, derive_quoted_path_alias(join.path, options),
-          "ON", left_key, "=", right_key
-        ] |> Enum.join(" ")
+          "ON", conditions
+        ] |>  Enum.join(" ")
       end)
   end
+
+  defp additional_join_conditions(path, %{join_on: join_on} = options) when is_bitstring(join_on) do
+    additional_join_conditions(path, %{options | join_on: [join_on]})
+  end
+
+  defp additional_join_conditions(path, %{join_on: join_on} = options) do
+    path_alias = derive_quoted_path_alias(path, options)
+
+    join_on
+      |> Enum.reduce([], fn(statement, conditions) ->
+        {sql, _} = prepend_path_aliases(statement, options)
+        if String.contains?(sql, path_alias) do
+          conditions |> List.insert_at(-1, sql)
+        else
+          conditions
+        end
+      end)
+  end
+
+  defp additional_join_conditions(_, _), do: []
 end

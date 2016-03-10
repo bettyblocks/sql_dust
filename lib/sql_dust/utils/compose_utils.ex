@@ -10,6 +10,9 @@ defmodule SqlDust.ComposeUtils do
       def from(options, resource)      do __from__(options, resource) end
       defp __from__(options, resource) do put(options, :from, resource) end
 
+      def join_on(statements)          do join_on(options, statements) end
+      def join_on(options, statements) do append(options, :join_on, statements) end
+
       def where(statements)            do where(options, statements) end
       def where(options, statements)   do append(options, :where, statements) end
 
@@ -22,8 +25,8 @@ defmodule SqlDust.ComposeUtils do
       def limit(resource)              do limit(options, resource) end
       def limit(options, resource)     do put(options, :limit, resource) end
 
-      def offset(resource)              do offset(options, resource) end
-      def offset(options, resource)     do put(options, :offset, resource) end
+      def offset(resource)             do offset(options, resource) end
+      def offset(options, resource)    do put(options, :offset, resource) end
 
       def adapter(name)                do adapter(options, name) end
       def adapter(options, name)       do put(options, :adapter, name) end
@@ -50,7 +53,7 @@ defmodule SqlDust.ComposeUtils do
 
         from = options.from
         schema = options.schema
-        options = Map.take(options, [:select, :where, :group_by, :order_by, :limit, :offset, :adapter])
+        options = Map.take(options, [:select, :join_on, :where, :group_by, :order_by, :limit, :offset, :adapter])
                   |> Enum.reduce(%{from: options.from}, fn({key, value}, map) ->
                     if is_nil(value) do
                       map

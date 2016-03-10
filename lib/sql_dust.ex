@@ -5,7 +5,7 @@ defmodule SqlDust do
   import SqlDust.JoinUtils
   alias SqlDust.MapUtils
 
-  defstruct [:select, :from, :where, :group_by, :order_by, :limit, :offset, :schema, :adapter]
+  defstruct [:select, :from, :join_on, :where, :group_by, :order_by, :limit, :offset, :schema, :adapter]
 
   @moduledoc """
     SqlDust is a module that generates SQL queries as intuitively as possible.

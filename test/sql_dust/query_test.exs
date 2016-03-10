@@ -293,21 +293,30 @@ defmodule SqlDust.QueryTest do
   test "generating SQL using composed query dust" do
     sql = select("id, name")
       |> select("company.name")
+      |> select("company.address.city")
       |> from("users")
+      |> join_on("company.address.is_current = 1")
       |> where("id > 100")
       |> where(["company.name LIKE '%Engel%'"])
       |> order_by("name, company.name")
       |> limit(20)
       |> schema(
         %{
-          users: %{"table_name": "people"}
-        })
+          users: %{"table_name": "people"},
+          companies: %{"address": %{macro: :has_one}}
+        }
+      )
       |> to_sql
 
     assert sql == """
-      SELECT `u`.id, `u`.name, `company`.name
+      SELECT
+        `u`.id,
+        `u`.name,
+        `company`.name,
+        `company.address`.city
       FROM people `u`
       LEFT JOIN companies `company` ON `company`.id = `u`.company_id
+      LEFT JOIN addresses `company.address` ON `company.address`.company_id = `company`.id AND `company.address`.is_current = 1
       WHERE (`u`.id > 100) AND (`company`.name LIKE '%Engel%')
       ORDER BY `u`.name, `company`.name
       LIMIT 20
