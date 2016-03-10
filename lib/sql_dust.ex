@@ -14,7 +14,8 @@ defmodule SqlDust do
   def from(resource, options \\ %{}, schema \\ %{}) do
     options = %{
       select: ".*",
-      adapter: :mysql
+      adapter: :mysql,
+      variables: %{}
     }
       |> Map.merge(options)
       |> Map.merge(%{
@@ -161,5 +162,6 @@ defmodule SqlDust do
         fn(x) -> is_nil(x) end
       )
       |> Enum.join("\n")
+      |> interpolate_variables(options.variables)
   end
 end

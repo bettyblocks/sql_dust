@@ -45,6 +45,18 @@ defmodule SqlDustTest do
       """
   end
 
+  test "interpolating variables" do
+    options = %{
+      select: ["id", "CONCAT(name, <<postfix>>)"],
+      variables: %{postfix: "PostFix!"}
+    }
+
+    assert SqlDust.from("users", options) == """
+      SELECT `u`.id, CONCAT(`u`.name, "PostFix!")
+      FROM users `u`
+      """
+  end
+
   test "using functions" do
     options = %{
       select: "COUNT(*)"
@@ -222,6 +234,30 @@ defmodule SqlDustTest do
       SELECT `p`.id, `p`.name, `current_price`.amount
       FROM products `p`
       LEFT JOIN prices `current_price` ON `current_price`.product_id = `p`.id AND `current_price`.latest = 1
+      """
+  end
+
+  test "adding join conditions within the schema using variables" do
+    options = %{
+      select: "id, name, current_statistic.amount",
+      variables: %{
+        "scope": "awesome_scope"
+      }
+    }
+    schema = %{
+      "products": %{
+        current_statistic: %{
+          macro: :has_one,
+          resource: "statistics",
+          join_on: "scope = <<scope>>"
+        }
+      }
+    }
+
+    assert SqlDust.from("products", options, schema) == """
+      SELECT `p`.id, `p`.name, `current_statistic`.amount
+      FROM products `p`
+      LEFT JOIN statistics `current_statistic` ON `current_statistic`.product_id = `p`.id AND `current_statistic`.scope = "awesome_scope"
       """
   end
 

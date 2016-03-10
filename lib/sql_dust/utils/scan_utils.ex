@@ -1,4 +1,7 @@
 defmodule SqlDust.ScanUtils do
+  alias SqlDust.MapUtils
+
+  @variable_not_found :variable_not_found
 
   def split_arguments(sql) when is_list(sql) do
     sql
@@ -58,6 +61,10 @@ defmodule SqlDust.ScanUtils do
       end)
   end
 
+  def scan_variables(sql) do
+    Regex.scan(~r/<<\w+>>/, sql)
+  end
+
   def scan_parenthesized(sql) do
     Regex.scan(~r/\([^\(\)]*?\)/, sql)
   end
@@ -96,5 +103,17 @@ defmodule SqlDust.ScanUtils do
       end
       String.replace(sql, "{#{index + 1}}", pattern)
     end)
+  end
+
+  def interpolate_variables(sql, variables) do
+    excluded = scan_quoted(sql)
+    sql = numerize_patterns(sql, excluded)
+
+    sql = Regex.replace(~r/<<(\w+)>>/, sql, fn(_, name) ->
+      value = MapUtils.get(variables, name, @variable_not_found)
+      if value == @variable_not_found, do: "<<" <> name <> ">>", else: inspect(value)
+    end)
+
+    interpolate_patterns(sql, excluded)
   end
 end
