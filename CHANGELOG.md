@@ -1,5 +1,9 @@
 ## SqlDust CHANGELOG
 
+### Version 0.1.10 (March 10, 2016)
+
+* Corrected has_one join specification
+
 ### Version 0.1.9 (March 9, 2016)
 
 * Being able to override the table name of an association
