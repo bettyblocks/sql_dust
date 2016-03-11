@@ -1,5 +1,10 @@
 ## SqlDust CHANGELOG
 
+### Version 0.2.1 (March 11, 2016)
+
+* Added #variables/1 and #variables/2 for use when composing queries
+* Also quoting column names
+
 ### Version 0.2.0 (March 11, 2016)
 
 * Replaced `macro` with `cardinality`

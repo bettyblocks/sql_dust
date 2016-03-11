@@ -101,7 +101,7 @@ To install SqlDust, please do the following:
   1. Add sql_dust to your list of dependencies in `mix.exs`:
 
         def deps do
-          [{:sql_dust, "~> 0.2.0"}]
+          [{:sql_dust, "~> 0.2.1"}]
         end
 
   2. Ensure sql_dust is started before your application:
