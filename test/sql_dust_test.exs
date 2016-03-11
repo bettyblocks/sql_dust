@@ -60,7 +60,7 @@ defmodule SqlDustTest do
     }
   end
 
-  test "interpolating variables respects duplicates" do
+  test "interpolating variables respects multiple occurrences " do
     options = %{
       select: ["id", "CONCAT(name, <<postfix>>)"],
       where: "foobar LIKE <<postfix>>",

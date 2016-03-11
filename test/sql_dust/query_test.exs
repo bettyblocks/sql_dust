@@ -100,6 +100,23 @@ defmodule SqlDust.QueryTest do
     }
   end
 
+  test "variables returns SqlDust containing :variables option" do
+    query_dust = variables(%{id: 1982})
+
+    assert query_dust == %SqlDust{
+      variables: %{id: 1982}
+    }
+  end
+
+  test "variables merges an argument to existing :variables option" do
+    query_dust = variables(%{id: 1982})
+      |> variables(%{name: "Paul Engel"})
+
+    assert query_dust == %SqlDust{
+      variables: %{id: 1982, name: "Paul Engel"}
+    }
+  end
+
   test "group_by returns SqlDust containing :group_by option (passing a string)" do
     query_dust = group_by("company_id")
 

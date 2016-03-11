@@ -28,6 +28,9 @@ defmodule SqlDust.ComposeUtils do
       def offset(resource)             do offset(options, resource) end
       def offset(options, resource)    do put(options, :offset, resource) end
 
+      def variables(map)               do variables(options, map) end
+      def variables(options, map)      do merge(options, :variables, map) end
+
       def adapter(name)                do adapter(options, name) end
       def adapter(options, name)       do put(options, :adapter, name) end
 
@@ -90,7 +93,7 @@ defmodule SqlDust.ComposeUtils do
         options = append(options, key, sql)
 
         if Map.size(variables) > 0 do
-          merge(options, :variables, variables)
+          variables(options, variables)
         else
           options
         end
