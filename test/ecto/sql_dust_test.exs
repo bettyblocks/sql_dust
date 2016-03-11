@@ -56,15 +56,15 @@ defmodule Ecto.SqlDustTest do
 
     assert sql == {"""
       SELECT
-        "c".id,
-        "c".name,
-        "country".name,
-        "local_weather".temp_lo,
-        "local_weather".temp_hi
+        "c"."id",
+        "c"."name",
+        "country"."name",
+        "local_weather"."temp_lo",
+        "local_weather"."temp_hi"
       FROM cities "c"
-      LEFT JOIN countries "country" ON "country".id = "c".country_id
-      LEFT JOIN weather "local_weather" ON "local_weather".city_id = "c".id
-      WHERE ("local_weather".wdate = '2015-09-12')
+      LEFT JOIN countries "country" ON "country"."id" = "c"."country_id"
+      LEFT JOIN weather "local_weather" ON "local_weather"."city_id" = "c"."id"
+      WHERE ("local_weather"."wdate" = '2015-09-12')
       """, []}
   end
 
@@ -77,15 +77,15 @@ defmodule Ecto.SqlDustTest do
 
     assert sql == {"""
       SELECT
-        `c`.id,
-        `c`.name,
-        `country`.name,
-        `local_weather`.temp_lo,
-        `local_weather`.temp_hi
+        `c`.`id`,
+        `c`.`name`,
+        `country`.`name`,
+        `local_weather`.`temp_lo`,
+        `local_weather`.`temp_hi`
       FROM cities `c`
-      LEFT JOIN countries `country` ON `country`.id = `c`.country_id
-      LEFT JOIN weather `local_weather` ON `local_weather`.city_id = `c`.id
-      WHERE (`local_weather`.wdate = ?)
+      LEFT JOIN countries `country` ON `country`.`id` = `c`.`country_id`
+      LEFT JOIN weather `local_weather` ON `local_weather`.`city_id` = `c`.`id`
+      WHERE (`local_weather`.`wdate` = ?)
       """, ["2015-09-12"]}
   end
 end

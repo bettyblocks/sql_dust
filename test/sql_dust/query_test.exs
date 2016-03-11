@@ -328,15 +328,15 @@ defmodule SqlDust.QueryTest do
 
     assert sql == {"""
       SELECT
-        `u`.id,
-        `u`.name,
-        `company`.name,
-        `company.address`.city
+        `u`.`id`,
+        `u`.`name`,
+        `company`.`name`,
+        `company.address`.`city`
       FROM people `u`
-      LEFT JOIN companies `company` ON `company`.id = `u`.company_id
-      LEFT JOIN addresses `company.address` ON `company.address`.company_id = `company`.id AND `company.address`.is_current = ?
-      WHERE (`u`.id > ?) AND (`company`.name LIKE ?)
-      ORDER BY `u`.name, `company`.name
+      LEFT JOIN companies `company` ON `company`.`id` = `u`.`company_id`
+      LEFT JOIN addresses `company.address` ON `company.address`.`company_id` = `company`.`id` AND `company.address`.`is_current` = ?
+      WHERE (`u`.`id` > ?) AND (`company`.`name` LIKE ?)
+      ORDER BY `u`.`name`, `company`.`name`
       LIMIT 20
       """, [1, 100, "%Engel%"]}
   end

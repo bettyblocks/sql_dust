@@ -91,7 +91,7 @@ defmodule SqlDust.PathUtils do
 
     path_alias = derive_path_alias(path, options)
 
-    {"#{quote_alias(path_alias, options)}.#{column}", options}
+    {"#{quote_alias(path_alias, options)}.#{quote_alias(column, options)}", options}
   end
 
   def dissect_path(path) do
@@ -129,6 +129,10 @@ defmodule SqlDust.PathUtils do
       "" -> String.downcase(String.at(options.resource.name, 0))
       _ -> path
     end
+  end
+
+  defp quote_alias("*" = sql, _) do
+    sql
   end
 
   defp quote_alias(sql, options) do
