@@ -27,7 +27,11 @@ Just focus on what really matters! ;)
 Based on standard naming conventions, `SqlDust` will determine how to join tables. You just have to specify from which resource (table) to query from and which columns to select using paths:
 
 ```elixir
-iex(1)> IO.puts SqlDust.from("users", %{select: ~w(id first_name company.category.name)})
+$ iex -S mix
+iex(1)> SqlDust.from("users", %{select: ~w(id first_name company.category.name)})        
+{"SELECT\n  `u`.id,\n  `u`.first_name,\n  `company.category`.name\nFROM users `u`\nLEFT JOIN companies `company` ON `company`.id = `u`.company_id\nLEFT JOIN categories `company.category` ON `company.category`.id = `company`.category_id\n",
+ []}
+iex(2)> IO.puts elem(v, 0)
 SELECT
   `u`.id,
   `u`.first_name,
@@ -37,27 +41,33 @@ LEFT JOIN companies `company` ON `company`.id = `u`.company_id
 LEFT JOIN categories `company.category` ON `company.category`.id = `company`.category_id
 
 :ok
-iex(2)>
+iex(3)>
 ```
 
 Composable queries are also possible:
 
 ```elixir
+$ iex -S mix
 iex(1)> import SqlDust.Query
 nil
-iex(2)> select("id, last_name, first_name") |> from("users") |> where("company.id = 1982") |> to_sql |> IO.puts
+iex(2)> select("id, last_name, first_name") |> from("users") |> where(["company.id = ?", 1982]) |> to_sql
+{"SELECT `u`.id, `u`.last_name, `u`.first_name\nFROM users `u`\nLEFT JOIN companies `company` ON `company`.id = `u`.company_id\nWHERE (`company`.id = ?)\n",
+ [1982]}
+iex(3)> IO.puts elem(v, 0)
 SELECT `u`.id, `u`.last_name, `u`.first_name
 FROM users `u`
 LEFT JOIN companies `company` ON `company`.id = `u`.company_id
-WHERE (`company`.id = 1982)
+WHERE (`company`.id = ?)
 
 :ok
-iex(3)> "users" |> adapter(:postgres) |> to_sql |> IO.puts
+iex(4)> "users" |> adapter(:postgres) |> to_sql
+{"SELECT \"u\".*\nFROM users \"u\"\n", []}
+iex(5)> IO.puts elem(v, 0)
 SELECT "u".*
 FROM users "u"
 
 :ok
-iex(4)>
+iex(6)>
 ```
 
 Composable queries using [Ecto](https://github.com/elixir-lang/ecto) models are also possible (using [Ecto simple example](https://github.com/elixir-lang/ecto/blob/master/examples/simple/lib/simple.ex)):
@@ -65,19 +75,23 @@ Composable queries using [Ecto](https://github.com/elixir-lang/ecto) models are 
 ```elixir
 iex(1)> import Ecto.SqlDust
 nil
-iex(2)> Weather |> to_sql |> IO.puts
+iex(2)> Weather |> to_sql
+{"SELECT \"w\".*\nFROM weather \"w\"\n", []}
+iex(3)> IO.puts elem(v, 0)
 SELECT "w".*
 FROM weather "w"
 
 :ok
-iex(3)> City |> select("id, name, country.name") |> where("country.name = 'United States'") |> to_sql |> IO.puts
+iex(4) City |> select("id, name, country.name") |> where(["country.name = ?", "United States"]) |> to_sql
+{"SELECT \"c\".id, \"c\".name, \"country\".name\nFROM cities \"c\"\nLEFT JOIN countries \"country\" ON \"country\".id = \"c\".country_id\nWHERE (\"country\".name = ?)\n", ["United States"]}
+iex(5)> IO.puts elem(v, 0)
 SELECT "c".id, "c".name, "country".name
 FROM cities "c"
 LEFT JOIN countries "country" ON "country".id = "c".country_id
-WHERE ("country".name = 'United States')
+WHERE ("country".name = ?)
 
 :ok
-iex(4)>
+iex(6)>
 ```
 
 ## Installation
@@ -87,7 +101,7 @@ To install SqlDust, please do the following:
   1. Add sql_dust to your list of dependencies in `mix.exs`:
 
         def deps do
-          [{:sql_dust, "~> 0.1.11"}]
+          [{:sql_dust, "~> 0.2.0"}]
         end
 
   2. Ensure sql_dust is started before your application:
@@ -215,6 +229,10 @@ FROM cities `c`
 
 SqlDust should automatically determine the correct database adapter of the Ecto model of course. So that will be added in the following release.
 
+### Tackling SQL injection
+
+As of SqlDust v0.2.0, when generating the SQL query, SqlDust returns a tuple containing the SQL query string along with a list containing values which the database should interpolate safely.
+
 Enjoy using SqlDust! ^^
 
 ## Testing
@@ -231,7 +249,6 @@ All the SqlDust features are tested in [test/sql_dust_test.exs](https://github.c
 
 ## TODO
 
-* Prevent SQL injection attacks
 * Automatically derive database adapter using `Ecto.Repo`
 * Support `has through` associations
 * Support polymorphic associations

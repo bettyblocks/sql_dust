@@ -1,5 +1,11 @@
 ## SqlDust CHANGELOG
 
+### Version 0.2.0 (March 11, 2016)
+
+* Replaced `macro` with `cardinality`
+* Returning a tuple containing SQL along with values (for tackling SQL injection)
+* Correctly taking SQL injection measurements when composing queries
+
 ### Version 0.1.11 (March 10, 2016)
 
 * Being able to specify additional join conditions using :join_on / #join_on
