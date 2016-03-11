@@ -11,10 +11,10 @@ defmodule SqlDust.ComposeUtils do
       defp __from__(options, resource) do put(options, :from, resource) end
 
       def join_on(statements)          do join_on(options, statements) end
-      def join_on(options, statements) do append(options, :join_on, statements) end
+      def join_on(options, statements) do append(options, :join_on, statements, true) end
 
       def where(statements)            do where(options, statements) end
-      def where(options, statements)   do append(options, :where, statements) end
+      def where(options, statements)   do append(options, :where, statements, true) end
 
       def group_by(args)               do group_by(options, args) end
       def group_by(options, args)      do append(options, :group_by, args) end
@@ -53,7 +53,7 @@ defmodule SqlDust.ComposeUtils do
 
         from = options.from
         schema = options.schema
-        options = Map.take(options, [:select, :join_on, :where, :group_by, :order_by, :limit, :offset, :adapter])
+        options = Map.take(options, [:select, :join_on, :where, :group_by, :order_by, :limit, :offset, :variables, :adapter])
                   |> Enum.reduce(%{from: options.from}, fn({key, value}, map) ->
                     if is_nil(value) do
                       map
@@ -73,12 +73,33 @@ defmodule SqlDust.ComposeUtils do
         Map.put(parse(options), key, value)
       end
 
+      defp append(options, key, value, true) do
+        values = List.wrap(value)
+        sql = Enum.at(values, 0)
+        variables = options.variables || %{}
+
+        {sql, variables} = values
+                             |> List.delete_at(0)
+                             |> Enum.reduce({sql, variables}, fn(value, {sql, variables}) ->
+                               key = "__" <> to_string(Map.size(variables) + 1) <> "__"
+                               variables = Map.put(variables, key, value)
+                               sql = String.replace(sql, "?", "<<" <> key <> ">>", global: false)
+                               {sql, variables}
+                             end)
+
+        options = append(options, key, sql)
+
+        if Map.size(variables) > 0 do
+          merge(options, :variables, variables)
+        else
+          options
+        end
+      end
+
       defp append(options, key, value) do
         options = parse(options)
         value = (Map.get(options, key) || [])
-          |> Enum.concat(
-            [value] |> List.flatten
-          )
+          |> Enum.concat(List.wrap(value))
 
         Map.put options, key, value
       end

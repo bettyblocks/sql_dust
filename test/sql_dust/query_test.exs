@@ -91,11 +91,12 @@ defmodule SqlDust.QueryTest do
   end
 
   test "where appends an argument to existing :where option (passing a list)" do
-    query_dust = where("company.name LIKE '%Engel%'")
-      |> where(["category_id = 1"])
+    query_dust = where(["company.name LIKE ?", "%Engel%"])
+      |> where(["category_id = ?", 1])
 
     assert query_dust == %SqlDust{
-      where: ["company.name LIKE '%Engel%'", "category_id = 1"]
+      where: ["company.name LIKE <<__1__>>", "category_id = <<__2__>>"],
+      variables: %{"__1__": "%Engel%", "__2__": 1}
     }
   end
 
@@ -295,9 +296,9 @@ defmodule SqlDust.QueryTest do
       |> select("company.name")
       |> select("company.address.city")
       |> from("users")
-      |> join_on("company.address.is_current = 1")
-      |> where("id > 100")
-      |> where(["company.name LIKE '%Engel%'"])
+      |> where(["id > ?", 100])
+      |> where(["company.name LIKE ?", "%Engel%"])
+      |> join_on(["company.address.is_current = ?", 1])
       |> order_by("name, company.name")
       |> limit(20)
       |> schema(
@@ -316,10 +317,10 @@ defmodule SqlDust.QueryTest do
         `company.address`.city
       FROM people `u`
       LEFT JOIN companies `company` ON `company`.id = `u`.company_id
-      LEFT JOIN addresses `company.address` ON `company.address`.company_id = `company`.id AND `company.address`.is_current = 1
-      WHERE (`u`.id > 100) AND (`company`.name LIKE '%Engel%')
+      LEFT JOIN addresses `company.address` ON `company.address`.company_id = `company`.id AND `company.address`.is_current = ?
+      WHERE (`u`.id > ?) AND (`company`.name LIKE ?)
       ORDER BY `u`.name, `company`.name
       LIMIT 20
-      """, []}
+      """, [1, 100, "%Engel%"]}
   end
 end
