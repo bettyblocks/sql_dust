@@ -77,6 +77,23 @@ defmodule SqlDustTest do
     }
   end
 
+  test "interpolating variables containing nested maps" do
+    options = %{
+      select: ["id", "name"],
+      where: "first_name LIKE <<user.first_name>>",
+      variables: %{user: %{first_name: "Paul"}}
+    }
+
+    assert SqlDust.from("users", options) == {
+      """
+      SELECT `u`.`id`, `u`.`name`
+      FROM users `u`
+      WHERE (`u`.`first_name` LIKE ?)
+      """,
+      ["Paul"]
+    }
+  end
+
   test "using functions" do
     options = %{
       select: "COUNT(*)"

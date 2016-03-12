@@ -60,7 +60,7 @@ defmodule SqlDust.ScanUtils do
   end
 
   def scan_variables(sql) do
-    Regex.scan(~r/<<\w+>>/, sql)
+    Regex.scan(~r/<<[\w\.]+>>/, sql)
   end
 
   def scan_parenthesized(sql) do
@@ -107,9 +107,12 @@ defmodule SqlDust.ScanUtils do
     excluded = scan_quoted(sql)
     sql = numerize_patterns(sql, excluded)
 
-    {sql, values} = Regex.scan(~r/<<(\w+)>>/, sql)
+    {sql, values} = Regex.scan(~r/<<([\w\.]+)>>/, sql)
                     |> Enum.reduce({sql, []}, fn([match, name], {sql, values}) ->
-                      values = values |> List.insert_at(-1, MapUtils.get(variables, name))
+                      value = String.split(name, ".") |> Enum.reduce(variables, fn(key, variables) ->
+                        MapUtils.get(variables, key)
+                      end)
+                      values = values |> List.insert_at(-1, value)
                       sql = String.replace sql, match, "?", global: false
                       {sql, values}
                     end)
