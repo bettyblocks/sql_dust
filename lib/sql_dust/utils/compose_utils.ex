@@ -11,10 +11,10 @@ defmodule SqlDust.ComposeUtils do
       defp __from__(options, resource) do put(options, :from, resource) end
 
       def join_on(statements)          do join_on(options, statements) end
-      def join_on(options, statements) do append(options, :join_on, statements, true) end
+      def join_on(options, statements) do append(options, :join_on, statements, false) end
 
       def where(statements)            do where(options, statements) end
-      def where(options, statements)   do append(options, :where, statements, true) end
+      def where(options, statements)   do append(options, :where, statements, false) end
 
       def group_by(args)               do group_by(options, args) end
       def group_by(options, args)      do append(options, :group_by, args) end
@@ -76,35 +76,17 @@ defmodule SqlDust.ComposeUtils do
         Map.put(parse(options), key, value)
       end
 
-      defp append(options, key, value, true) do
-        values = List.wrap(value)
-        sql = Enum.at(values, 0)
-        variables = options.variables || %{}
-
-        {sql, variables} = values
-                             |> List.delete_at(0)
-                             |> Enum.reduce({sql, variables}, fn(value, {sql, variables}) ->
-                               key = "__" <> to_string(Map.size(variables) + 1) <> "__"
-                               variables = Map.put(variables, key, value)
-                               sql = String.replace(sql, "?", "<<" <> key <> ">>", global: false)
-                               {sql, variables}
-                             end)
-
-        options = append(options, key, sql)
-
-        if Map.size(variables) > 0 do
-          variables(options, variables)
-        else
-          options
-        end
-      end
-
-      defp append(options, key, value) do
+      defp append(options, key, value, concat \\ true) do
         options = parse(options)
-        value = (Map.get(options, key) || [])
-          |> Enum.concat(List.wrap(value))
+        list = Map.get(options, key) || []
 
-        Map.put options, key, value
+        if concat do
+          list = list |> Enum.concat(List.wrap(value))
+        else
+          list = list |> List.insert_at(-1, value)
+        end
+
+        Map.put options, key, list
       end
 
       defp merge(options, key, value) do

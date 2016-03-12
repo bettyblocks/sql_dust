@@ -28,6 +28,7 @@ defmodule SqlDust do
       |> Map.put(:resource, resource_schema(resource, options))
       |> derive_select
       |> derive_from
+      |> derive_join_on
       |> derive_where
       |> derive_group_by
       |> derive_order_by
@@ -75,29 +76,31 @@ defmodule SqlDust do
     Map.put options, :joins, joins
   end
 
+  defp derive_join_on(options) do
+    if join_on = MapUtils.get(options, :join_on) do
+      options = join_on |> wrap_conditions |> parse_conditions(options, :join_on)
+    end
+
+    options
+  end
+
   defp derive_where(options) do
     if where = MapUtils.get(options, :where) do
+      where = where |> wrap_conditions
+
       {having, where} = where
-        |> List.wrap
-        |> Enum.map(fn(sql) -> "(#{sql})" end)
-        |> Enum.partition(fn(sql) ->
+        |> Enum.partition(fn([sql | _]) ->
           sql = sanitize_sql(sql)
           Enum.any?(options.aliases, fn(sql_alias) ->
-            String.match?(sql, ~r/[^\.\w]#{sql_alias}[^\.\w]/)
+            String.match?(sql, ~r/(^|[^\.\w])#{sql_alias}([^\.\w]|$)/)
           end)
         end)
 
-      {where, options} = prepend_path_aliases(where, options)
-      {having, options} = prepend_path_aliases(having, options)
+      options = parse_conditions(where, options, :where)
+      options = parse_conditions(having, options, :having)
 
-      if length(where) > 0 do
-        options = Map.put(options, :where, "WHERE #{where |> Enum.join(" AND ")}")
-      else
+      if length(where) == 0 do
         options = Map.delete(options, :where)
-      end
-
-      if length(having) > 0 do
-        options = Map.put(options, :having, "HAVING #{having |> Enum.join(" AND ")}")
       end
     end
 
@@ -142,6 +145,45 @@ defmodule SqlDust do
     else
       options
     end
+  end
+
+  defp wrap_conditions(conditions) do
+    conditions = List.wrap(conditions)
+    [head | tail] = conditions
+
+    if is_bitstring(head) && (length(Regex.scan(~r/\?/, head)) == length(tail)) do
+      [conditions]
+    else
+      Enum.map(conditions, fn(statement) -> List.wrap(statement) end)
+    end
+  end
+
+  defp parse_conditions([], options, _), do: options
+  defp parse_conditions(conditions, options, key) when key in [:where, :having] do
+    {conditions, options} = Enum.reduce(conditions, {[], options}, fn([sql | values], {conditions, options}) ->
+                              {sql, options} = prepend_path_aliases("(" <> sql <> ")", options)
+                              {List.insert_at(conditions, -1, [sql] |> Enum.concat(values)), options}
+                            end)
+    parse_conditions(conditions, options, key, true)
+  end
+
+  defp parse_conditions(conditions, options, key, _ \\ true) do
+    {conditions, options} = Enum.reduce(conditions, {[], options}, fn([sql | values], {conditions, options}) ->
+
+                              {sql, variables} = values
+                                                 |> Enum.reduce({sql, options.variables}, fn(value, {sql, variables}) ->
+                                                   key = "__" <> to_string(Map.size(variables) + 1) <> "__"
+                                                   variables = Map.put(variables, key, value)
+                                                   sql = String.replace(sql, "?", "<<" <> key <> ">>", global: false)
+                                                   {sql, variables}
+                                                 end)
+
+                              options = Map.put(options, :variables, variables)
+                              {List.insert_at(conditions, -1, sql), options}
+                            end)
+
+    prefix = if key in [:where, :having], do: (Atom.to_string(key) |> String.upcase) <> " ", else: ""
+    Map.put(options, key, prefix <> (conditions |> Enum.join(" AND ")))
   end
 
   defp compose_sql(options) do

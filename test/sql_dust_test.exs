@@ -321,6 +321,62 @@ defmodule SqlDustTest do
       """, []}
   end
 
+  test "supports ['path = ? OR path = ?', criteria1, criteria2] notation (complexity 1)" do
+    options = %{
+      select: ["id", "name"],
+      where: ["name LIKE ?", "%Engel%"]
+    }
+
+    assert SqlDust.from("users", options) == {
+      """
+      SELECT `u`.`id`, `u`.`name`
+      FROM users `u`
+      WHERE (`u`.`name` LIKE ?)
+      """,
+      ["%Engel%"]
+    }
+  end
+
+  test "supports ['path = ? OR path = ?', criteria1, criteria2] notation (complexity 2)" do
+    options = %{
+      select: ["id", "name"],
+      where: ["name LIKE ? OR name LIKE ?", "%Paul%", "%Engel%"]
+    }
+
+    assert SqlDust.from("users", options) == {
+      """
+      SELECT `u`.`id`, `u`.`name`
+      FROM users `u`
+      WHERE (`u`.`name` LIKE ? OR `u`.`name` LIKE ?)
+      """,
+      ["%Paul%", "%Engel%"]
+    }
+  end
+
+  test "supports ['path = ? OR path = ?', criteria1, criteria2] notation (complexity 3)" do
+    options = %{
+      select: ["id", "name"],
+      where: [
+        ["name LIKE ? OR name LIKE ?", "%Paul%", "%Engel%"],
+        ["company_id = 1982"],
+        ["address.city = ? AND subscription.active = ?", "Amsterdam", true],
+        ["tags.name IN (?)", [1, 8, 1982]]
+      ]
+    }
+
+    assert SqlDust.from("users", options) == {
+      """
+      SELECT `u`.`id`, `u`.`name`
+      FROM users `u`
+      LEFT JOIN addresses `address` ON `address`.`id` = `u`.`address_id`
+      LEFT JOIN subscriptions `subscription` ON `subscription`.`id` = `u`.`subscription_id`
+      LEFT JOIN tags `tags` ON `tags`.`user_id` = `u`.`id`
+      WHERE (`u`.`name` LIKE ? OR `u`.`name` LIKE ?) AND (`u`.`company_id` = 1982) AND (`address`.`city` = ? AND `subscription`.`active` = ?) AND (`tags`.`name` IN (?))
+      """,
+      ["%Paul%", "%Engel%", "Amsterdam", true, [1, 8, 1982]]
+    }
+  end
+
   test "overriding the resource table name" do
     schema = %{
       "resellers": %{

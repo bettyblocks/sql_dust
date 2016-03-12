@@ -77,7 +77,7 @@ defmodule SqlDust.QueryTest do
     query_dust = where(["company.name LIKE '%Engel%'"])
 
     assert query_dust == %SqlDust{
-      where: ["company.name LIKE '%Engel%'"]
+      where: [["company.name LIKE '%Engel%'"]]
     }
   end
 
@@ -95,8 +95,10 @@ defmodule SqlDust.QueryTest do
       |> where(["category_id = ?", 1])
 
     assert query_dust == %SqlDust{
-      where: ["company.name LIKE <<__1__>>", "category_id = <<__2__>>"],
-      variables: %{"__1__": "%Engel%", "__2__": 1}
+      where: [
+        ["company.name LIKE ?", "%Engel%"],
+        ["category_id = ?", 1]
+      ]
     }
   end
 
