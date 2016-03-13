@@ -205,6 +205,16 @@ defmodule SqlDust.QueryTest do
     }
   end
 
+  test "limit defaults to '?'" do
+    query_dust = select("id")
+      |> limit
+
+    assert query_dust == %SqlDust{
+      select: ["id"],
+      limit: "?"
+    }
+  end
+
   test "limit overwrites :limit option within passed SqlDust" do
     query_dust = select("id")
       |> limit(10)
@@ -213,6 +223,17 @@ defmodule SqlDust.QueryTest do
     assert query_dust == %SqlDust{
       select: ["id"],
       limit: 100
+    }
+  end
+
+  test "limit default overwrites :limit option within passed SqlDust" do
+    query_dust = select("id")
+      |> limit(10)
+      |> limit
+
+    assert query_dust == %SqlDust{
+      select: ["id"],
+      limit: "?"
     }
   end
 
@@ -242,6 +263,27 @@ defmodule SqlDust.QueryTest do
     assert query_dust == %SqlDust{
       select: ["id"],
       offset: 100
+    }
+  end
+
+  test "offset defaults to '?'" do
+    query_dust = select("id")
+      |> offset
+
+    assert query_dust == %SqlDust{
+      select: ["id"],
+      offset: "?"
+    }
+  end
+
+  test "offset default overwrites :offset option within passed SqlDust" do
+    query_dust = select("id")
+      |> offset(10)
+      |> offset
+
+    assert query_dust == %SqlDust{
+      select: ["id"],
+      offset: "?"
     }
   end
 

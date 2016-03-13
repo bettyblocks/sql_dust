@@ -103,7 +103,7 @@ defmodule SqlDust.ScanUtils do
     end)
   end
 
-  def interpolate_variables(sql, variables) do
+  def interpolate_variables(sql, variables, initial_variables) do
     excluded = scan_quoted(sql)
     sql = numerize_patterns(sql, excluded)
 
@@ -113,7 +113,19 @@ defmodule SqlDust.ScanUtils do
                               MapUtils.get(variables, name)
                             end)
 
-                            if Regex.match?(~r(__\d+__), key) do
+                            anonymous_key = Regex.match?(~r(__\d+__), key) || (
+                              String.contains?(key, "_options_") && (
+                                !(initial_variables
+                                  |> MapUtils.get(:_options_, %{})
+                                  |> Map.keys
+                                  |> Enum.map(fn(k) ->
+                                       if is_atom(k), do: Atom.to_string(k), else: k
+                                     end)
+                                  |> Enum.member?(String.split(key, ".") |> Enum.at(1)))
+                              )
+                            )
+
+                            if anonymous_key do
                               key = nil
                             end
 
@@ -125,9 +137,9 @@ defmodule SqlDust.ScanUtils do
                           end)
 
     sql = interpolate_patterns(sql, excluded)
-    include_keys = Enum.any?(Map.keys(variables), fn(key) ->
+    include_keys = Enum.any?(Map.keys(initial_variables), fn(key) ->
                      if is_atom(key), do: key = Atom.to_string(key)
-                     (key != "_options_") && !Regex.match?(~r(__\d+__), key)
+                     !Regex.match?(~r(__\d+__), key)
                    end)
 
     if include_keys do

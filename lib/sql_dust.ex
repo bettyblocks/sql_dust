@@ -15,6 +15,7 @@ defmodule SqlDust do
     options = %{
       select: ".*",
       adapter: :mysql,
+      initial_variables: options[:variables] || %{},
       variables: %{}
     }
       |> Map.merge(options)
@@ -187,11 +188,17 @@ defmodule SqlDust do
   end
 
   defp interpolate_option_variable(options, key, value) do
-    option_variables = (options.variables[:_options_] || %{}) |> Map.put(key, value)
-    variables = options.variables |> Map.put(:_options_, option_variables)
+    variables = options.variables
+
+    unless value == "?" do
+      option_variables = (options.variables[:_options_] || %{}) |> Map.put(key, value)
+      variables = options.variables |> Map.put(:_options_, option_variables)
+    end
+
+    interpolated_key = "<<_options_." <> Atom.to_string(key)
 
     options
-      |> Map.put(key, (Atom.to_string(key) |> String.upcase) <> " <<_options_." <> Atom.to_string(key) <> ">>")
+      |> Map.put(key, (Atom.to_string(key) |> String.upcase) <> " " <> interpolated_key <> ">>")
       |> Map.put(:variables, variables)
   end
 
@@ -213,6 +220,6 @@ defmodule SqlDust do
         fn(x) -> is_nil(x) end
       )
       |> Enum.join("\n")
-      |> interpolate_variables(options.variables)
+      |> interpolate_variables(options.variables, options.initial_variables)
   end
 end

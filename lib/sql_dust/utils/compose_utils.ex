@@ -22,11 +22,15 @@ defmodule SqlDust.ComposeUtils do
       def order_by(args)               do order_by(options, args) end
       def order_by(options, args)      do append(options, :order_by, args) end
 
-      def limit(resource)              do limit(options, resource) end
-      def limit(options, resource)     do put(options, :limit, resource) end
+      def limit                        do limit("?") end
+      def limit(%{} = options)         do limit(options, "?") end
+      def limit(arg)                   do limit(options, arg) end
+      def limit(options, arg)          do put(options, :limit, arg) end
 
-      def offset(resource)             do offset(options, resource) end
-      def offset(options, resource)    do put(options, :offset, resource) end
+      def offset                       do offset("?") end
+      def offset(%{} = options)        do offset(options, "?") end
+      def offset(arg)                  do offset(options, arg) end
+      def offset(options, arg)         do put(options, :offset, arg) end
 
       def variables(map)               do variables(options, map) end
       def variables(options, map)      do merge(options, :variables, map) end

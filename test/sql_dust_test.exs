@@ -547,6 +547,25 @@ defmodule SqlDustTest do
       """, [20]}
   end
 
+  test "limiting the query result by passing the limit in variables[:_options_][:limit]" do
+    options = %{
+      limit: "?",
+      variables: %{
+        _options_: %{
+          limit: 20
+        }
+      }
+    }
+
+    assert SqlDust.from("users", options) == {"""
+      SELECT `u`.*
+      FROM users `u`
+      LIMIT ?
+      """,
+      [20],
+      ~w(_options_.limit)}
+  end
+
   test "adding an offset to the query result" do
     options = %{
       limit: 10,
@@ -559,6 +578,27 @@ defmodule SqlDustTest do
       LIMIT ?
       OFFSET ?
       """, [10, 20]}
+  end
+
+  test "adding an offset to the query result by passing the offset in variables[:_options_][:offset]" do
+    options = %{
+      limit: 10,
+      offset: "?",
+      variables: %{
+        _options_: %{
+          offset: 20
+        }
+      }
+    }
+
+    assert SqlDust.from("users", options) == {"""
+      SELECT `u`.*
+      FROM users `u`
+      LIMIT ?
+      OFFSET ?
+      """,
+      [10, 20],
+      [nil, "_options_.offset"]}
   end
 
   test "quoting SELECT statement aliases" do
