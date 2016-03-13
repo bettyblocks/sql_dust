@@ -133,7 +133,7 @@ defmodule SqlDust do
 
   defp derive_limit(options) do
     if limit = MapUtils.get(options, :limit) do
-      Map.put(options, :limit, "LIMIT #{limit}")
+      options |> interpolate_option_variable(:limit, limit)
     else
       options
     end
@@ -141,7 +141,7 @@ defmodule SqlDust do
 
   defp derive_offset(options) do
     if offset = MapUtils.get(options, :offset) do
-      Map.put(options, :offset, "OFFSET #{offset}")
+      options |> interpolate_option_variable(:offset, offset)
     else
       options
     end
@@ -186,6 +186,15 @@ defmodule SqlDust do
     Map.put(options, key, prefix <> (conditions |> Enum.join(" AND ")))
   end
 
+  defp interpolate_option_variable(options, key, value) do
+    option_variables = (options.variables[:_options_] || %{}) |> Map.put(key, value)
+    variables = options.variables |> Map.put(:_options_, option_variables)
+
+    options
+      |> Map.put(key, (Atom.to_string(key) |> String.upcase) <> " <<_options_." <> Atom.to_string(key) <> ">>")
+      |> Map.put(:variables, variables)
+  end
+
   defp compose_sql(options) do
     [
       options.select,
@@ -204,6 +213,6 @@ defmodule SqlDust do
         fn(x) -> is_nil(x) end
       )
       |> Enum.join("\n")
-      |> process_variables(options.variables)
+      |> interpolate_variables(options.variables)
   end
 end

@@ -56,7 +56,8 @@ defmodule SqlDustTest do
       SELECT `u`.`id`, CONCAT(`u`.`name`, ?)
       FROM users `u`
       """,
-      ["PostFix!"]
+      ["PostFix!"],
+      ~w(postfix)
     }
   end
 
@@ -73,7 +74,8 @@ defmodule SqlDustTest do
       FROM users `u`
       WHERE (`u`.`foobar` LIKE ?)
       """,
-      ["PostFix!", "PostFix!"]
+      ["PostFix!", "PostFix!"],
+      ~w(postfix postfix)
     }
   end
 
@@ -90,7 +92,26 @@ defmodule SqlDustTest do
       FROM users `u`
       WHERE (`u`.`first_name` LIKE ?)
       """,
-      ["Paul"]
+      ["Paul"],
+      ~w(user.first_name)
+    }
+  end
+
+  test "resulting variables respects multiple occurrences " do
+    options = %{
+      select: ["id", "CONCAT(name, <<postfix>>)"],
+      where: "foobar LIKE <<postfix>>",
+      variables: %{postfix: "PostFix!"}
+    }
+
+    assert SqlDust.from("users", options) == {
+      """
+      SELECT `u`.`id`, CONCAT(`u`.`name`, ?)
+      FROM users `u`
+      WHERE (`u`.`foobar` LIKE ?)
+      """,
+      ["PostFix!", "PostFix!"],
+      ~w(postfix postfix)
     }
   end
 
@@ -309,7 +330,8 @@ defmodule SqlDustTest do
       FROM products `p`
       LEFT JOIN statistics `current_statistic` ON `current_statistic`.`product_id` = `p`.`id` AND `current_statistic`.`scope` = ?
       """,
-      ["awesome_scope"]
+      ["awesome_scope"],
+      ~w(scope)
     }
   end
 
@@ -521,8 +543,8 @@ defmodule SqlDustTest do
     assert SqlDust.from("users", options) == {"""
       SELECT `u`.*
       FROM users `u`
-      LIMIT 20
-      """, []}
+      LIMIT ?
+      """, [20]}
   end
 
   test "adding an offset to the query result" do
@@ -534,9 +556,9 @@ defmodule SqlDustTest do
     assert SqlDust.from("users", options) == {"""
       SELECT `u`.*
       FROM users `u`
-      LIMIT 10
-      OFFSET 20
-      """, []}
+      LIMIT ?
+      OFFSET ?
+      """, [10, 20]}
   end
 
   test "quoting SELECT statement aliases" do
@@ -636,8 +658,8 @@ defmodule SqlDustTest do
       GROUP BY `c`.`id`
       HAVING (`order.count` > 5)
       ORDER BY COUNT(DISTINCT `tags`.`id`) DESC
-      LIMIT 5
-      """, []}
+      LIMIT ?
+      """, [5]}
   end
 
   test "DirectiveRecord example 3" do

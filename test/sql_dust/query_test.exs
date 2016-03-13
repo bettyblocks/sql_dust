@@ -339,7 +339,8 @@ defmodule SqlDust.QueryTest do
       LEFT JOIN addresses `company.address` ON `company.address`.`company_id` = `company`.`id` AND `company.address`.`is_current` = ?
       WHERE (`u`.`id` > ?) AND (`company`.`name` LIKE ?)
       ORDER BY `u`.`name`, `company`.`name`
-      LIMIT 20
-      """, [1, 100, "%Engel%"]}
+      LIMIT ?
+      """,
+      [1, 100, "%Engel%", 20]}
   end
 end

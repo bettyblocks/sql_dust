@@ -103,20 +103,37 @@ defmodule SqlDust.ScanUtils do
     end)
   end
 
-  def process_variables(sql, variables) do
+  def interpolate_variables(sql, variables) do
     excluded = scan_quoted(sql)
     sql = numerize_patterns(sql, excluded)
 
-    {sql, values} = Regex.scan(~r/<<([\w\.]+)>>/, sql)
-                    |> Enum.reduce({sql, []}, fn([match, name], {sql, values}) ->
-                      value = String.split(name, ".") |> Enum.reduce(variables, fn(key, variables) ->
-                        MapUtils.get(variables, key)
-                      end)
-                      values = values |> List.insert_at(-1, value)
-                      sql = String.replace sql, match, "?", global: false
-                      {sql, values}
-                    end)
+    {sql, values, keys} = Regex.scan(~r/<<([\w\.]+)>>/, sql)
+                          |> Enum.reduce({sql, [], []}, fn([match, key], {sql, values, keys}) ->
+                            value = String.split(key, ".") |> Enum.reduce(variables, fn(name, variables) ->
+                              MapUtils.get(variables, name)
+                            end)
 
-    {interpolate_patterns(sql, excluded), values}
+                            if Regex.match?(~r(__\d+__), key) do
+                              key = nil
+                            end
+
+                            sql = String.replace sql, match, "?", global: false
+                            values = values |> List.insert_at(-1, value)
+                            keys = keys |> List.insert_at(-1, key)
+
+                            {sql, values, keys}
+                          end)
+
+    sql = interpolate_patterns(sql, excluded)
+    include_keys = Enum.any?(Map.keys(variables), fn(key) ->
+                     if is_atom(key), do: key = Atom.to_string(key)
+                     (key != "_options_") && !Regex.match?(~r(__\d+__), key)
+                   end)
+
+    if include_keys do
+      {sql, values, keys}
+    else
+      {sql, values}
+    end
   end
 end
