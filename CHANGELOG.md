@@ -1,5 +1,9 @@
 ## SqlDust CHANGELOG
 
+### Version 0.2.2 (March 11, 2016)
+
+* Being able to use variables containing nested maps (e.g. "<<user.first_name>>")
+
 ### Version 0.2.1 (March 11, 2016)
 
 * Added #variables/1 and #variables/2 for use when composing queries
