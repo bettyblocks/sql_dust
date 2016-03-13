@@ -1,6 +1,10 @@
 ## SqlDust CHANGELOG
 
-### Version 0.2.2 (March 11, 2016)
+### Version 0.3.0 (March 13, 2016)
+
+* Returning corresponding variable keys within resulting tuple (only when having passed options[:variables] of course)
+
+### Version 0.2.2 (March 13, 2016)
 
 * Being able to use variables containing nested maps (e.g. "<<user.first_name>>")
 

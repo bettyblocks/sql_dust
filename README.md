@@ -101,7 +101,7 @@ To install SqlDust, please do the following:
   1. Add sql_dust to your list of dependencies in `mix.exs`:
 
         def deps do
-          [{:sql_dust, "~> 0.2.2"}]
+          [{:sql_dust, "~> 0.3.0"}]
         end
 
   2. Ensure sql_dust is started before your application:
@@ -234,6 +234,15 @@ SqlDust should automatically determine the correct database adapter of the Ecto 
 As of SqlDust v0.2.0, when generating the SQL query, SqlDust returns a tuple containing the SQL query string along with a list containing values which the database should interpolate safely.
 
 Enjoy using SqlDust! ^^
+
+### Variable keys within resulting tuple
+
+As of SqlDust v0.3.0, SqlDust returns a tuple with an additional list of variable keys which corresponds to the passed `options[:variables]`.
+
+To have it clear:
+
+* SqlDust will return a tuple of **two** elements when NOT having passed variables
+* SqlDust will return a tuple of **three** elements when having passed variables
 
 ## Testing
 
