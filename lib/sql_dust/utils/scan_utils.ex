@@ -88,7 +88,14 @@ defmodule SqlDust.ScanUtils do
           "#{prefix}{#{index + 1}}#{postfix}"
         end)
       else
-        String.replace(sql, pattern, "{#{index + 1}}")
+        if Regex.match?(~r/^\w+$/, pattern) do
+          {_, regex} = Regex.compile("(^|\\b)" <> pattern <> "(\\b|$)")
+          Regex.replace(regex, sql, fn(_, prefix, postfix) ->
+            "#{prefix}{#{index + 1}}#{postfix}"
+          end)
+        else
+          String.replace(sql, pattern, "{#{index + 1}}")
+        end
       end
     end)
   end

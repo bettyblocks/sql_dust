@@ -770,14 +770,14 @@ defmodule SqlDustTest do
     options = %{
       select: "id AS identifier",
       where: "identifier > 0 AND id != 2",
-      order_by: "id"
+      order_by: "description desc"
     }
 
     assert SqlDust.from("users", options) == {"""
       SELECT `u`.`id` AS `identifier`
       FROM users `u`
       HAVING (`identifier` > 0 AND `u`.`id` != 2)
-      ORDER BY `u`.`id`
+      ORDER BY `u`.`description` desc
       """, []}
   end
 
