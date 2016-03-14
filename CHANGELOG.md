@@ -1,5 +1,9 @@
 ## SqlDust CHANGELOG
 
+### Version 0.3.1 (March 14, 2016)
+
+* Adding word boundaries when numerizing word patterns
+
 ### Version 0.3.0 (March 13, 2016)
 
 * Returning corresponding variable keys within resulting tuple (only when having passed options[:variables] of course)
