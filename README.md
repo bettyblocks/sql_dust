@@ -28,17 +28,17 @@ Based on standard naming conventions, `SqlDust` will determine how to join table
 
 ```elixir
 $ iex -S mix
-iex(1)> SqlDust.from("users", %{select: ~w(id first_name company.category.name)})        
-{"SELECT\n  `u`.id,\n  `u`.first_name,\n  `company.category`.name\nFROM users `u`\nLEFT JOIN companies `company` ON `company`.id = `u`.company_id\nLEFT JOIN categories `company.category` ON `company.category`.id = `company`.category_id\n",
+iex(1)> SqlDust.from("users", %{select: ~w(id first_name company.category.name)})
+{"SELECT\n  `u`.`id`,\n  `u`.`first_name`,\n  `company.category`.`name`\nFROM users `u`\nLEFT JOIN companies `company` ON `company`.`id` = `u`.`company_id`\nLEFT JOIN categories `company.category` ON `company.category`.`id` = `company`.`category_id`\n",
  []}
 iex(2)> IO.puts elem(v, 0)
 SELECT
-  `u`.id,
-  `u`.first_name,
-  `company.category`.name
+  `u`.`id`,
+  `u`.`first_name`,
+  `company.category`.`name`
 FROM users `u`
-LEFT JOIN companies `company` ON `company`.id = `u`.company_id
-LEFT JOIN categories `company.category` ON `company.category`.id = `company`.category_id
+LEFT JOIN companies `company` ON `company`.`id` = `u`.`company_id`
+LEFT JOIN categories `company.category` ON `company.category`.`id` = `company`.`category_id`
 
 :ok
 iex(3)>
@@ -51,13 +51,13 @@ $ iex -S mix
 iex(1)> import SqlDust.Query
 nil
 iex(2)> select("id, last_name, first_name") |> from("users") |> where(["company.id = ?", 1982]) |> to_sql
-{"SELECT `u`.id, `u`.last_name, `u`.first_name\nFROM users `u`\nLEFT JOIN companies `company` ON `company`.id = `u`.company_id\nWHERE (`company`.id = ?)\n",
+{"SELECT `u`.`id`, `u`.`last_name`, `u`.`first_name`\nFROM users `u`\nLEFT JOIN companies `company` ON `company`.`id` = `u`.`company_id`\nWHERE (`company`.`id` = ?)\n",
  [1982]}
 iex(3)> IO.puts elem(v, 0)
-SELECT `u`.id, `u`.last_name, `u`.first_name
+SELECT `u`.`id`, `u`.`last_name`, `u`.`first_name`
 FROM users `u`
-LEFT JOIN companies `company` ON `company`.id = `u`.company_id
-WHERE (`company`.id = ?)
+LEFT JOIN companies `company` ON `company`.`id` = `u`.`company_id`
+WHERE (`company`.`id` = ?)
 
 :ok
 iex(4)> "users" |> adapter(:postgres) |> to_sql
@@ -83,12 +83,12 @@ FROM weather "w"
 
 :ok
 iex(4) City |> select("id, name, country.name") |> where(["country.name = ?", "United States"]) |> to_sql
-{"SELECT \"c\".id, \"c\".name, \"country\".name\nFROM cities \"c\"\nLEFT JOIN countries \"country\" ON \"country\".id = \"c\".country_id\nWHERE (\"country\".name = ?)\n", ["United States"]}
+{"SELECT \"c\".\"id\", \"c\".\"name\", \"country\".\"name\"\nFROM cities \"c\"\nLEFT JOIN countries \"country\" ON \"country\".\"id\" = \"c\".\"country_id\"\nWHERE (\"country\".\"name\" = ?)\n", ["United States"]}
 iex(5)> IO.puts elem(v, 0)
-SELECT "c".id, "c".name, "country".name
+SELECT "c"."id", "c"."name", "country"."name"
 FROM cities "c"
-LEFT JOIN countries "country" ON "country".id = "c".country_id
-WHERE ("country".name = ?)
+LEFT JOIN countries "country" ON "country"."id" = "c"."country_id"
+WHERE ("country"."name" = ?)
 
 :ok
 iex(6)>
@@ -135,25 +135,25 @@ schema = %{
   }
 }
 
-SqlDust.from("customers", options, schema) |> IO.puts
+SqlDust.from("customers", options, schema) |> elem(0) |> IO.puts
 
 """
 SELECT
-  `c`.id,
-  `c`.name,
-  COUNT(`orders`.id) AS order_count,
-  GROUP_CONCAT(DISTINCT `tags`.name) AS tags,
-  `foo`.tags
+  `c`.`id`,
+  `c`.`name`,
+  COUNT(`orders`.`id`) AS `order_count`,
+  GROUP_CONCAT(DISTINCT `tags`.`name`) AS `tags`,
+  `foo`.`tags`
 FROM customers `c`
-LEFT JOIN orders `orders` ON `orders`.customer_id = `c`.id
-LEFT JOIN customers_tags `tags_bridge_table` ON `tags_bridge_table`.customer_id = `c`.id
-LEFT JOIN tags `tags` ON `tags`.id = `tags_bridge_table`.tag_id
-LEFT JOIN foos `foo` ON `foo`.id = `c`.foo_id
-WHERE (`c`.name LIKE '%Paul%') AND (`foo`.tags = 1)
-GROUP BY `c`.id
-HAVING (order_count > 5)
-ORDER BY COUNT(DISTINCT `tags`.id) DESC
-LIMIT 5
+LEFT JOIN orders `orders` ON `orders`.`customer_id` = `c`.`id`
+LEFT JOIN customers_tags `tags_bridge_table` ON `tags_bridge_table`.`customer_id` = `c`.`id`
+LEFT JOIN tags `tags` ON `tags`.`id` = `tags_bridge_table`.`tag_id`
+LEFT JOIN foos `foo` ON `foo`.`id` = `c`.`foo_id`
+WHERE (`c`.`name` LIKE '%Paul%') AND (`foo`.`tags` = 1)
+GROUP BY `c`.`id`
+HAVING (`order_count` > 5)
+ORDER BY COUNT(DISTINCT `tags`.`id`) DESC
+LIMIT ?
 """
 ```
 
@@ -170,14 +170,15 @@ select("id, last_name, first_name")
   |> where("last_name LIKE '%Engel%'")
   |> order_by(["last_name", "first_name"])
   |> to_sql
+  |> elem(0)
   |> IO.puts
 
 """
-SELECT `u`.id, `u`.last_name, `u`.first_name
+SELECT `u`.`id`, `u`.`last_name`, `u`.`first_name`
 FROM users `u`
-LEFT JOIN companies `company` ON `company`.id = `u`.company_id
-WHERE (`company`.id = 1982) AND (`u`.last_name LIKE '%Engel%')
-ORDER BY `u`.last_name, `u`.first_name
+LEFT JOIN companies `company` ON `company`.`id` = `u`.`company_id`
+WHERE (`company`.`id` = 1982) AND (`u`.`last_name` LIKE '%Engel%')
+ORDER BY `u`.`last_name`, `u`.`first_name`
 """
 ```
 
@@ -192,19 +193,20 @@ City
   |> select("id, name, country.name, local_weather.temp_lo, local_weather.temp_hi")
   |> where("local_weather.wdate = '2015-09-12'")
   |> to_sql
+  |> elem(0)
   |> IO.puts
 
 """
 SELECT
-  "c".id,
-  "c".name,
-  "country".name,
-  "local_weather".temp_lo,
-  "local_weather".temp_hi
+  "c"."id",
+  "c"."name",
+  "country"."name",
+  "local_weather"."temp_lo",
+  "local_weather"."temp_hi"
 FROM cities "c"
-LEFT JOIN countries "country" ON "country".id = "c".country_id
-LEFT JOIN weather "local_weather" ON "local_weather".city_id = "c".id
-WHERE ("local_weather".wdate = '2015-09-12')
+LEFT JOIN countries "country" ON "country"."id" = "c"."country_id"
+LEFT JOIN weather "local_weather" ON "local_weather"."city_id" = "c"."id"
+WHERE ("local_weather"."wdate" = '2015-09-12')
 """
 ```
 
@@ -219,10 +221,11 @@ City
   |> select("id, name")
   |> adapter(:mysql)
   |> to_sql
+  |> elem(0)
   |> IO.puts
 
 """
-SELECT `c`.id, `c`.name
+SELECT `c`.`id`, `c`.`name`
 FROM cities `c`
 """
 ```
