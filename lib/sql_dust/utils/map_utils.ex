@@ -13,9 +13,14 @@ defmodule SqlDust.MapUtils do
         {val1, val2} = {get(map1, key), get(map2, key)}
         val = cond do
           is_map(val1) -> deep_merge(val1, val2 || %{})
-          true -> (val2 || val1)
+          has_key?(map2, key) -> val2
+          true -> val1
         end
         Map.put(map, String.to_atom(key), val)
       end)
+  end
+
+  defp has_key?(map, key) do
+    Map.has_key?(map, key) || Map.has_key?(map, String.to_atom(key))
   end
 end
