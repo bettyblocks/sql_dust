@@ -1,5 +1,9 @@
 ## SqlDust CHANGELOG
 
+### Version 0.3.2 (March 22, 2016)
+
+* Adding deep merge for nil and false values
+
 ### Version 0.3.1 (March 14, 2016)
 
 * Adding word boundaries when numerizing word patterns
