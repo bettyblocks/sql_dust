@@ -35,9 +35,9 @@ defmodule SqlDust.Mixfile do
 
   defp package do
     [
-      maintainers: ["Paul Engel"],
+      maintainers: ["Paul Engel", "Daniel Willemse"],
       licenses: ["MIT"],
-      links: %{github: "https://github.com/archan937/sql_dust"}
+      links: %{github: "https://github.com/bettyblocks/sql_dust"}
     ]
   end
 end
