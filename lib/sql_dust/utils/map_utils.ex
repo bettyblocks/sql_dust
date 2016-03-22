@@ -20,7 +20,7 @@ defmodule SqlDust.MapUtils do
       end)
   end
 
-  def has_key?(map, key) do
+  defp has_key?(map, key) do
     Map.has_key?(map, key) || Map.has_key?(map, String.to_atom(key))
   end
 end
