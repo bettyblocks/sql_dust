@@ -3,7 +3,7 @@ defmodule SqlDust.Mixfile do
 
   def project do
     [app: :sql_dust,
-     version: "0.3.2",
+     version: "0.3.3",
      elixir: "~> 1.2",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
@@ -35,7 +35,7 @@ defmodule SqlDust.Mixfile do
 
   defp package do
     [
-      maintainers: ["Paul Engel", "Daniel Willemse"],
+      maintainers: ["Paul Engel", "Daniel Willemse", "Peter Arentsen"],
       licenses: ["MIT"],
       links: %{github: "https://github.com/bettyblocks/sql_dust"}
     ]

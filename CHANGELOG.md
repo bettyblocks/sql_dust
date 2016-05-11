@@ -1,5 +1,9 @@
 ## SqlDust CHANGELOG
 
+### Version 0.3.3 (May 11, 2016)
+
+* Add quoting to table names so queries wont break because of reserved words
+
 ### Version 0.3.2 (March 22, 2016)
 
 * Adding deep merge for nil and false values
