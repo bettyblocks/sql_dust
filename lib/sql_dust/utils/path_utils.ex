@@ -131,11 +131,11 @@ defmodule SqlDust.PathUtils do
     end
   end
 
-  defp quote_alias("*" = sql, _) do
+  def quote_alias("*" = sql, _) do
     sql
   end
 
-  defp quote_alias(sql, options) do
+  def quote_alias(sql, options) do
     quotation_mark = case options.adapter do
       :mysql -> "`"
       _ -> '"'

@@ -63,7 +63,7 @@ defmodule SqlDust do
   end
 
   defp derive_from(options) do
-    from = "#{options.resource.table_name} #{derive_quoted_path_alias("", options)}"
+    from = "#{quote_alias(options.resource.table_name, options)} #{derive_quoted_path_alias("", options)}"
 
     Map.put options, :from, "FROM #{from}"
   end
