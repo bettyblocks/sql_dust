@@ -376,9 +376,9 @@ defmodule SqlDust.QueryTest do
         `u`.`name`,
         `company`.`name`,
         `company.address`.`city`
-      FROM people `u`
-      LEFT JOIN companies `company` ON `company`.`id` = `u`.`company_id`
-      LEFT JOIN addresses `company.address` ON `company.address`.`company_id` = `company`.`id` AND `company.address`.`is_current` = ?
+      FROM `people` `u`
+      LEFT JOIN `companies` `company` ON `company`.`id` = `u`.`company_id`
+      LEFT JOIN `addresses` `company.address` ON `company.address`.`company_id` = `company`.`id` AND `company.address`.`is_current` = ?
       WHERE (`u`.`id` > ?) AND (`company`.`name` LIKE ?)
       ORDER BY `u`.`name`, `company`.`name`
       LIMIT ?

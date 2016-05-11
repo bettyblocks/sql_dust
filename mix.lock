@@ -1,5 +1,5 @@
-%{"bunt": {:hex, :bunt, "0.1.4"},
-  "credo": {:hex, :credo, "0.3.0-dev2"},
+%{"bunt": {:hex, :bunt, "0.1.5"},
+  "credo": {:hex, :credo, "0.3.13"},
   "decimal": {:hex, :decimal, "1.1.1"},
   "earmark": {:hex, :earmark, "0.2.1"},
   "ecto": {:hex, :ecto, "1.1.3"},

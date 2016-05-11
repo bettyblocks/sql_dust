@@ -112,7 +112,7 @@ defmodule SqlDust.JoinUtils do
                        |> Enum.join(" AND ")
 
         [
-          "LEFT JOIN", join.table, derive_quoted_path_alias(join.path, options),
+          "LEFT JOIN", quote_alias(join.table, options), derive_quoted_path_alias(join.path, options),
           "ON", conditions
         ] |> Enum.join(" ")
       end)
