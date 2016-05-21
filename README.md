@@ -1,4 +1,4 @@
-# SqlDust [![Hex.pm](https://img.shields.io/hexpm/v/sql_dust.svg)](https://hex.pm/packages/sql_dust) [![Hex.pm](https://img.shields.io/hexpm/dt/sql_dust.svg)](https://hex.pm/packages/sql_dust) [![Build Status](https://travis-ci.org/bettyblocks/sql_dust.svg?branch=master)](https://travis-ci.org/bettyblocks/sql_dust) [![Inline docs](http://inch-ci.org/github/archan937/sql_dust.svg)](http://inch-ci.org/github/archan937/sql_dust)
+# SqlDust [![Hex.pm](https://img.shields.io/hexpm/v/sql_dust.svg)](https://hex.pm/packages/sql_dust) [![Hex.pm](https://img.shields.io/hexpm/dt/sql_dust.svg)](https://hex.pm/packages/sql_dust) [![Build Status](https://travis-ci.org/bettyblocks/sql_dust.svg?branch=master)](https://travis-ci.org/bettyblocks/sql_dust) [![Deps Status](https://beta.hexfaktor.org/badge/all/github/bettyblocks/sql_dust.svg)](https://beta.hexfaktor.org/github/bettyblocks/sql_dust) [![Inline docs](http://inch-ci.org/github/archan937/sql_dust.svg)](http://inch-ci.org/github/archan937/sql_dust)
 
 Easy. Simple. Powerful. Generate (complex) SQL queries using magical Elixir SQL dust.
 
