@@ -5,7 +5,7 @@ defmodule SqlDust do
   import SqlDust.JoinUtils
   alias SqlDust.MapUtils
 
-  defstruct [:select, :from, :join_on, :where, :group_by, :order_by, :limit, :offset, :schema, :variables, :adapter]
+  defstruct [:select, :from, :join_on, :where, :group_by, :order_by, :limit, :offset, :unique, :schema, :variables, :adapter]
 
   @moduledoc """
     SqlDust is a module that generates SQL queries as intuitively as possible.
@@ -16,7 +16,8 @@ defmodule SqlDust do
       select: ".*",
       adapter: :mysql,
       initial_variables: options[:variables] || %{},
-      variables: %{}
+      variables: %{},
+      unique: false
     }
       |> Map.merge(options)
       |> Map.merge(%{
@@ -36,6 +37,7 @@ defmodule SqlDust do
       |> derive_limit
       |> derive_offset
       |> derive_joins
+      |> ensure_unique_records
       |> compose_sql
   end
 
@@ -148,6 +150,14 @@ defmodule SqlDust do
     end
   end
 
+  defp ensure_unique_records(options) do
+    if options.unique && !MapUtils.get(options, :group_by) && Enum.any?(options.joins, fn(x) -> elem(x, 0) != :belongs_to end) do
+      options |> Map.put(:group_by, "id") |> derive_group_by
+    else
+      options
+    end
+  end
+
   defp wrap_conditions(conditions) do
     conditions = List.wrap(conditions)
     [head | tail] = conditions
@@ -206,7 +216,9 @@ defmodule SqlDust do
     [
       options.select,
       options.from,
-      options.joins,
+      options.joins |> Enum.map(
+        fn(x) -> elem(x, 1) end
+      ),
       options[:where],
       options[:group_by],
       options[:having],

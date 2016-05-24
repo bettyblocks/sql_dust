@@ -287,6 +287,43 @@ defmodule SqlDust.QueryTest do
     }
   end
 
+  test "unique returns SqlDust containing :unique option (at default true)" do
+    query_dust = unique
+
+    assert query_dust == %SqlDust{
+      unique: true
+    }
+  end
+
+  test "unique returns SqlDust containing :unique option" do
+    query_dust = unique(false)
+
+    assert query_dust == %SqlDust{
+      unique: false
+    }
+  end
+
+  test "unique sets :unique option of passed SqlDust" do
+    query_dust = select("id")
+      |> unique(true)
+
+    assert query_dust == %SqlDust{
+      select: ["id"],
+      unique: true
+    }
+  end
+
+  test "unique overwrites :unique option within passed SqlDust" do
+    query_dust = select("id")
+      |> unique(true)
+      |> unique(false)
+
+    assert query_dust == %SqlDust{
+      select: ["id"],
+      unique: false
+    }
+  end
+
   test "schema returns SqlDust containing :schema option" do
     query_dust = schema(%{
       "users": %{
@@ -368,6 +405,7 @@ defmodule SqlDust.QueryTest do
           companies: %{"address": %{cardinality: :has_one}}
         }
       )
+      |> unique
       |> to_sql
 
     assert sql == {"""
@@ -380,6 +418,7 @@ defmodule SqlDust.QueryTest do
       LEFT JOIN `companies` `company` ON `company`.`id` = `u`.`company_id`
       LEFT JOIN `addresses` `company.address` ON `company.address`.`company_id` = `company`.`id` AND `company.address`.`is_current` = ?
       WHERE (`u`.`id` > ?) AND (`company`.`name` LIKE ?)
+      GROUP BY `u`.`id`
       ORDER BY `u`.`name`, `company`.`name`
       LIMIT ?
       """,
