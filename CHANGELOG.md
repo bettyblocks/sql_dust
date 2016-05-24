@@ -1,5 +1,10 @@
 ## SqlDust CHANGELOG
 
+### Version 0.3.4 (May 24, 2016)
+
+* Supporting specifying to ensure unique base records when composing queries
+* Added option :unique which instructs SqlDust to ensure always getting unique base records when encountering collection joins
+
 ### Version 0.3.3 (May 11, 2016)
 
 * Add quoting to table names so queries wont break because of reserved words
