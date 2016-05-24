@@ -666,6 +666,87 @@ defmodule SqlDustTest do
       """, []}
   end
 
+  test "not auto-grouping base records at default" do
+    options = %{
+      select: "id",
+      where: "organization.addresses.street LIKE '%Broad%'"
+    }
+
+    assert SqlDust.from("users", options) == {"""
+      SELECT `u`.`id`
+      FROM `users` `u`
+      LEFT JOIN `organizations` `organization` ON `organization`.`id` = `u`.`organization_id`
+      LEFT JOIN `addresses` `organization.addresses` ON `organization.addresses`.`organization_id` = `organization`.`id`
+      WHERE (`organization.addresses`.`street` LIKE '%Broad%')
+      """, []}
+  end
+
+  test "being able to ensuring unique base records for has_many associations" do
+    options = %{
+      select: "id",
+      where: "organization.addresses.street LIKE '%Broad%'",
+      unique: true
+    }
+
+    assert SqlDust.from("users", options) == {"""
+      SELECT `u`.`id`
+      FROM `users` `u`
+      LEFT JOIN `organizations` `organization` ON `organization`.`id` = `u`.`organization_id`
+      LEFT JOIN `addresses` `organization.addresses` ON `organization.addresses`.`organization_id` = `organization`.`id`
+      WHERE (`organization.addresses`.`street` LIKE '%Broad%')
+      GROUP BY `u`.`id`
+      """, []}
+  end
+
+  test "being able to ensuring unique base records for has_one associations" do
+    options = %{
+      select: "id",
+      where: "organization.name LIKE '%Broad%'",
+      unique: true
+    }
+
+    schema = %{
+      "users": %{
+        organization: %{
+          cardinality: :has_one
+        }
+      }
+    }
+
+    assert SqlDust.from("users", options, schema) == {"""
+      SELECT `u`.`id`
+      FROM `users` `u`
+      LEFT JOIN `organizations` `organization` ON `organization`.`user_id` = `u`.`id`
+      WHERE (`organization`.`name` LIKE '%Broad%')
+      GROUP BY `u`.`id`
+      """, []}
+  end
+
+  test "being able to ensuring unique base records for has_and_belongs_to_many associations" do
+    options = %{
+      select: "id",
+      where: "skills.name LIKE '%cool%'",
+      unique: true
+    }
+
+    schema = %{
+      "users": %{
+        skills: %{
+          cardinality: :has_and_belongs_to_many
+        }
+      }
+    }
+
+    assert SqlDust.from("users", options, schema) == {"""
+      SELECT `u`.`id`
+      FROM `users` `u`
+      LEFT JOIN `skills_users` `skills_bridge_table` ON `skills_bridge_table`.`user_id` = `u`.`id`
+      LEFT JOIN `skills` `skills` ON `skills`.`id` = `skills_bridge_table`.`skill_id`
+      WHERE (`skills`.`name` LIKE '%cool%')
+      GROUP BY `u`.`id`
+      """, []}
+  end
+
   test "DirectiveRecord example 1 (with additional WHERE statements)" do
     options = %{
       select: "id, name, COUNT(orders.id) AS order.count, GROUP_CONCAT(DISTINCT tags.name) AS tags, foo.tags",

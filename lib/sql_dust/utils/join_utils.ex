@@ -9,7 +9,7 @@ defmodule SqlDust.JoinUtils do
 
     derive_schema(path, association, options)
       |> derive_table_joins(path, association, options)
-      |> compose_sql(options)
+      |> compose_join(options)
   end
 
   defp derive_table_joins(schema1, path, association, options) do
@@ -29,8 +29,9 @@ defmodule SqlDust.JoinUtils do
     derive_schema_joins(association.cardinality, schema1, schema2, association)
   end
 
-  defp derive_schema_joins(:belongs_to, schema1, schema2, association) do
+  defp derive_schema_joins(:belongs_to = cardinality, schema1, schema2, association) do
     %{
+      cardinality: cardinality,
       table: association[:table_name] || schema2.table_name,
       path: schema2.path,
       left_key: "#{schema2.path}.#{association.primary_key}",
@@ -39,8 +40,9 @@ defmodule SqlDust.JoinUtils do
     }
   end
 
-  defp derive_schema_joins(:has_one, schema1, schema2, association) do
+  defp derive_schema_joins(:has_one = cardinality, schema1, schema2, association) do
     %{
+      cardinality: cardinality,
       table: association[:table_name] || schema2.table_name,
       path: schema2.path,
       left_key: "#{schema2.path}.#{association.foreign_key}",
@@ -49,8 +51,9 @@ defmodule SqlDust.JoinUtils do
     }
   end
 
-  defp derive_schema_joins(:has_many, schema1, schema2, association) do
+  defp derive_schema_joins(:has_many = cardinality, schema1, schema2, association) do
     %{
+      cardinality: cardinality,
       table: association[:table_name] || schema2.table_name,
       path: schema2.path,
       left_key: "#{schema2.path}.#{association.foreign_key}",
@@ -59,14 +62,16 @@ defmodule SqlDust.JoinUtils do
     }
   end
 
-  defp derive_schema_joins(:has_and_belongs_to_many, schema1, schema2, association) do
+  defp derive_schema_joins(:has_and_belongs_to_many = cardinality, schema1, schema2, association) do
     [
       %{
+        cardinality: cardinality,
         table: association.bridge_table,
         path: "#{schema2.path}_bridge_table",
         left_key: "#{schema2.path}_bridge_table.#{association.foreign_key}",
         right_key: "#{schema1.path}.#{association.primary_key}"
       }, %{
+        cardinality: cardinality,
         table: schema2.table_name,
         path: schema2.path,
         left_key: "#{schema2.path}.#{association.association_primary_key}",
@@ -90,11 +95,11 @@ defmodule SqlDust.JoinUtils do
       end)
   end
 
-  defp compose_sql(table_joins, options) when is_map(table_joins) do
-    compose_sql([table_joins], options)
+  defp compose_join(table_joins, options) when is_map(table_joins) do
+    compose_join([table_joins], options)
   end
 
-  defp compose_sql(table_joins, options) do
+  defp compose_join(table_joins, options) do
     table_joins
       |> Enum.map(fn(join) ->
         {left_key, _} = prepend_path_alias(join.left_key, options)
@@ -111,10 +116,7 @@ defmodule SqlDust.JoinUtils do
                        |> Enum.concat(additional_conditions)
                        |> Enum.join(" AND ")
 
-        [
-          "LEFT JOIN", quote_alias(join.table, options), derive_quoted_path_alias(join.path, options),
-          "ON", conditions
-        ] |> Enum.join(" ")
+        {join.cardinality, ["LEFT JOIN", quote_alias(join.table, options), derive_quoted_path_alias(join.path, options), "ON", conditions] |> Enum.join(" ")}
       end)
   end
 
