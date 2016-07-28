@@ -1,5 +1,9 @@
 ## SqlDust CHANGELOG
 
+### Version 0.3.5 (July 28, 2016)
+
+* No longer appending items to a list using `List.insert_at(-1, ...)` because that has a high performance impact (thanks @nulian)
+
 ### Version 0.3.4 (May 24, 2016)
 
 * Supporting specifying to ensure unique base records when composing queries
