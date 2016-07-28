@@ -137,11 +137,14 @@ defmodule SqlDust.ScanUtils do
                             end
 
                             sql = String.replace sql, match, "?", global: false
-                            values = values |> List.insert_at(-1, value)
-                            keys = keys |> List.insert_at(-1, key)
+                            values = [value] ++ values
+                            keys = [key] ++ keys
 
                             {sql, values, keys}
                           end)
+
+    values = Enum.reverse(values)
+    keys = Enum.reverse(keys)
 
     sql = interpolate_patterns(sql, excluded)
     include_keys = Enum.any?(Map.keys(initial_variables), fn(key) ->
