@@ -5,7 +5,7 @@ defmodule SqlDust.JoinUtils do
   import SqlDust.ScanUtils
 
   def derive_joins(path, options) do
-    {path, association} = dissect_path(path)
+    {path, association} = dissect_path(path, options)
 
     derive_schema(path, association, options)
       |> derive_table_joins(path, association, options)

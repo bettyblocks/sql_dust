@@ -82,7 +82,7 @@ defmodule SqlDust.PathUtils do
   end
 
   def prepend_path_alias(path, options, cascade \\ false) do
-    {path, column} = dissect_path(path)
+    {path, column} = dissect_path(path, options)
 
     if cascade do
       paths = Enum.concat(options[:paths], cascaded_paths(path))
@@ -94,8 +94,9 @@ defmodule SqlDust.PathUtils do
     {"#{quote_alias(path_alias, options)}.#{quote_alias(column, options)}", options}
   end
 
-  def dissect_path(path) do
-    segments = String.split(path, ~r/\.(?=(?:[^\`]*\`[^\`]*\`)*[^\`]*$)/)
+  def dissect_path(path, options) do
+    quotation_mark = quotation_mark(options)
+    segments = String.split(path, ~r/\.(?=(?:[^#{quotation_mark}]*#{quotation_mark}[^#{quotation_mark}]*#{quotation_mark})*[^#{quotation_mark}]*$)/)
     path = Enum.slice(segments, 0..-2)
     column = List.last(segments)
 
