@@ -158,6 +158,35 @@ defmodule SqlDustTest do
       """, []}
   end
 
+  test "extreme column and table naming with a belongs_to" do
+    options = %{
+      select: "id, first_name, user_role.name, department.id, department.name"
+    }
+
+    schema = %{
+      "departments": %{
+        table_name: "super department.store"
+      },
+      "users": %{
+        "department": %{
+          foreign_key: "insane weird.stuff"
+        }
+      }
+    }
+
+    assert SqlDust.from("users", options, schema) == {"""
+      SELECT
+        `u`.`id`,
+        `u`.`first_name`,
+        `user_role`.`name`,
+        `department`.`id`,
+        `department`.`name`
+      FROM `users` `u`
+      LEFT JOIN `user_roles` `user_role` ON `user_role`.`id` = `u`.`user_role_id`
+      LEFT JOIN `super department.store` `department` ON `department`.`id` = `u`.`insane weird.stuff`
+      """, []}
+  end
+
   test "selecting columns of a nested 'belongs to' association" do
     options = %{
       select: "id, first_name, company.category.name"
@@ -495,6 +524,32 @@ defmodule SqlDustTest do
       """, []}
   end
 
+  test "overriding the bridge table of a has and belongs to many with extreme table names in association" do
+    options = %{
+      select: "id, first_name, last_name, GROUP_CONCAT(skills.name)"
+    }
+    schema = %{
+      "users": %{
+        "skills": %{
+          cardinality: :has_and_belongs_to_many,
+          bridge_table: "test skill_set.awesome",
+          foreign_key: "strange.person_id"
+        }
+      }
+    }
+
+    assert SqlDust.from("users", options, schema) == {"""
+      SELECT
+        `u`.`id`,
+        `u`.`first_name`,
+        `u`.`last_name`,
+        GROUP_CONCAT(`skills`.`name`)
+      FROM `users` `u`
+      LEFT JOIN `test skill_set.awesome` `skills_bridge_table` ON `skills_bridge_table`.`strange.person_id` = `u`.`id`
+      LEFT JOIN `skills` `skills` ON `skills`.`id` = `skills_bridge_table`.`skill_id`
+      """, []}
+  end
+
   test "grouping the query result" do
     options = %{
       select: ["COUNT(*)"],
@@ -698,6 +753,34 @@ defmodule SqlDustTest do
       """, []}
   end
 
+  test "extreme column and table naming with has_many" do
+    options = %{
+      select: "id",
+      where: "organization.addresses.street LIKE '%Broad%'",
+      unique: true
+    }
+
+    schema = %{
+      "organizations": %{
+        "addresses": %{
+          foreign_key: "sql dust.is.cool"
+        }
+      },
+      "addresses": %{
+        table_name: "some address.table"
+      }
+    }
+
+    assert SqlDust.from("users", options, schema) == {"""
+      SELECT `u`.`id`
+      FROM `users` `u`
+      LEFT JOIN `organizations` `organization` ON `organization`.`id` = `u`.`organization_id`
+      LEFT JOIN `some address.table` `organization.addresses` ON `organization.addresses`.`sql dust.is.cool` = `organization`.`id`
+      WHERE (`organization.addresses`.`street` LIKE '%Broad%')
+      GROUP BY `u`.`id`
+      """, []}
+  end
+
   test "being able to ensuring unique base records for has_one associations" do
     options = %{
       select: "id",
@@ -717,6 +800,34 @@ defmodule SqlDustTest do
       SELECT `u`.`id`
       FROM `users` `u`
       LEFT JOIN `organizations` `organization` ON `organization`.`user_id` = `u`.`id`
+      WHERE (`organization`.`name` LIKE '%Broad%')
+      GROUP BY `u`.`id`
+      """, []}
+  end
+
+  test "extreme column and table naming with a has_one" do
+    options = %{
+      select: "id",
+      where: "organization.name LIKE '%Broad%'",
+      unique: true
+    }
+
+    schema = %{
+      "users": %{
+        organization: %{
+          cardinality: :has_one,
+          foreign_key: "user.organization column"
+        }
+      },
+      "organizations": %{
+        table_name: "organization hallo.test"
+      }
+    }
+
+    assert SqlDust.from("users", options, schema) == {"""
+      SELECT `u`.`id`
+      FROM `users` `u`
+      LEFT JOIN `organization hallo.test` `organization` ON `organization`.`user.organization column` = `u`.`id`
       WHERE (`organization`.`name` LIKE '%Broad%')
       GROUP BY `u`.`id`
       """, []}

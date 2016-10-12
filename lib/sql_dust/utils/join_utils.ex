@@ -5,7 +5,7 @@ defmodule SqlDust.JoinUtils do
   import SqlDust.ScanUtils
 
   def derive_joins(path, options) do
-    {path, association} = dissect_path(path)
+    {path, association} = dissect_path(path, options)
 
     derive_schema(path, association, options)
       |> derive_table_joins(path, association, options)
@@ -26,56 +26,56 @@ defmodule SqlDust.JoinUtils do
 
     association = MapUtils.get(schema1, association)
 
-    derive_schema_joins(association.cardinality, schema1, schema2, association)
+    derive_schema_joins(association.cardinality, schema1, schema2, association, options)
   end
 
-  defp derive_schema_joins(:belongs_to = cardinality, schema1, schema2, association) do
+  defp derive_schema_joins(:belongs_to = cardinality, schema1, schema2, association, options) do
     %{
       cardinality: cardinality,
       table: association[:table_name] || schema2.table_name,
       path: schema2.path,
-      left_key: "#{schema2.path}.#{association.primary_key}",
-      right_key: "#{schema1.path}.#{association.foreign_key}",
+      left_key: "#{schema2.path |> quote_alias(options)}.#{association.primary_key |> quote_alias(options)}",
+      right_key: "#{schema1.path |> quote_alias(options)}.#{association.foreign_key |> quote_alias(options)}",
       join_on: derive_join_on(schema2.path, association)
     }
   end
 
-  defp derive_schema_joins(:has_one = cardinality, schema1, schema2, association) do
+  defp derive_schema_joins(:has_one = cardinality, schema1, schema2, association, options) do
     %{
       cardinality: cardinality,
       table: association[:table_name] || schema2.table_name,
       path: schema2.path,
-      left_key: "#{schema2.path}.#{association.foreign_key}",
-      right_key: "#{schema1.path}.#{association.primary_key}",
+      left_key: "#{schema2.path |> quote_alias(options)}.#{association.foreign_key |> quote_alias(options)}",
+      right_key: "#{schema1.path |> quote_alias(options)}.#{association.primary_key |> quote_alias(options)}",
       join_on: derive_join_on(schema2.path, association)
     }
   end
 
-  defp derive_schema_joins(:has_many = cardinality, schema1, schema2, association) do
+  defp derive_schema_joins(:has_many = cardinality, schema1, schema2, association, options) do
     %{
       cardinality: cardinality,
       table: association[:table_name] || schema2.table_name,
       path: schema2.path,
-      left_key: "#{schema2.path}.#{association.foreign_key}",
-      right_key: "#{schema1.path}.#{association.primary_key}",
+      left_key: "#{schema2.path |> quote_alias(options)}.#{association.foreign_key |> quote_alias(options)}",
+      right_key: "#{schema1.path |> quote_alias(options)}.#{association.primary_key |> quote_alias(options)}",
       join_on: derive_join_on(schema2.path, association)
     }
   end
 
-  defp derive_schema_joins(:has_and_belongs_to_many = cardinality, schema1, schema2, association) do
+  defp derive_schema_joins(:has_and_belongs_to_many = cardinality, schema1, schema2, association, options) do
     [
       %{
         cardinality: cardinality,
         table: association.bridge_table,
         path: "#{schema2.path}_bridge_table",
-        left_key: "#{schema2.path}_bridge_table.#{association.foreign_key}",
-        right_key: "#{schema1.path}.#{association.primary_key}"
+        left_key: "#{quote_alias(schema2.path <> "_bridge_table", options)}.#{quote_alias(association.foreign_key, options)}",
+        right_key: "#{quote_alias(schema1.path, options)}.#{quote_alias(association.primary_key, options)}"
       }, %{
         cardinality: cardinality,
         table: schema2.table_name,
         path: schema2.path,
-        left_key: "#{schema2.path}.#{association.association_primary_key}",
-        right_key: "#{schema2.path}_bridge_table.#{association.association_foreign_key}"
+        left_key: "#{quote_alias(schema2.path, options)}.#{quote_alias(association.association_primary_key, options)}",
+        right_key: "#{quote_alias(schema2.path <> "_bridge_table", options)}.#{quote_alias(association.association_foreign_key, options)}"
       }
     ]
   end

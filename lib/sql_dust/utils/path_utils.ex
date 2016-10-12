@@ -82,7 +82,7 @@ defmodule SqlDust.PathUtils do
   end
 
   def prepend_path_alias(path, options, cascade \\ false) do
-    {path, column} = dissect_path(path)
+    {path, column} = dissect_path(path, options)
 
     if cascade do
       paths = Enum.concat(options[:paths], cascaded_paths(path))
@@ -94,8 +94,10 @@ defmodule SqlDust.PathUtils do
     {"#{quote_alias(path_alias, options)}.#{quote_alias(column, options)}", options}
   end
 
-  def dissect_path(path) do
-    segments = String.split(path, ".")
+  def dissect_path(path, options) do
+    quotation_mark = quotation_mark(options)
+    split_on_dot_outside_quotation_mark = ~r/\.(?=(?:[^#{quotation_mark}]*#{quotation_mark}[^#{quotation_mark}]*#{quotation_mark})*[^#{quotation_mark}]*$)/
+    segments = String.split(path, split_on_dot_outside_quotation_mark)
     path = Enum.slice(segments, 0..-2)
     column = List.last(segments)
 
@@ -125,10 +127,18 @@ defmodule SqlDust.PathUtils do
   end
 
   defp derive_path_alias(path, options) do
-    case path do
+    case String.replace(path, "#{quotation_mark(options)}", "") do
       "" -> String.downcase(String.at(options.resource.name, 0))
       _ -> path
     end
+  end
+
+  def quotation_mark(%{adapter: :mysql}) do
+    "`"
+  end
+
+  def quotation_mark(_) do
+    '"'
   end
 
   def quote_alias("*" = sql, _) do
@@ -136,10 +146,11 @@ defmodule SqlDust.PathUtils do
   end
 
   def quote_alias(sql, options) do
-    quotation_mark = case options.adapter do
-      :mysql -> "`"
-      _ -> '"'
+    quotation_mark = quotation_mark(options)
+    if Regex.match?(~r/\A#{quotation_mark}.*#{quotation_mark}\z/, sql) do
+      sql
+    else
+      "#{quotation_mark}#{sql}#{quotation_mark}"
     end
-    "#{quotation_mark}#{sql}#{quotation_mark}"
   end
 end
