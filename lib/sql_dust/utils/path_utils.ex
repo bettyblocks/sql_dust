@@ -96,7 +96,8 @@ defmodule SqlDust.PathUtils do
 
   def dissect_path(path, options) do
     quotation_mark = quotation_mark(options)
-    segments = String.split(path, ~r/\.(?=(?:[^#{quotation_mark}]*#{quotation_mark}[^#{quotation_mark}]*#{quotation_mark})*[^#{quotation_mark}]*$)/)
+    split_on_dot_outside_quotation_mark = ~r/\.(?=(?:[^#{quotation_mark}]*#{quotation_mark}[^#{quotation_mark}]*#{quotation_mark})*[^#{quotation_mark}]*$)/
+    segments = String.split(path, split_on_dot_outside_quotation_mark)
     path = Enum.slice(segments, 0..-2)
     column = List.last(segments)
 
