@@ -29,35 +29,35 @@ defmodule SqlDust.JoinUtils do
     derive_schema_joins(association.cardinality, schema1, schema2, association, options)
   end
 
-  defp derive_schema_joins(:belongs_to = cardinality, schema1, schema2, association, _) do
+  defp derive_schema_joins(:belongs_to = cardinality, schema1, schema2, association, options) do
     %{
       cardinality: cardinality,
       table: association[:table_name] || schema2.table_name,
       path: schema2.path,
-      left_key: "#{schema2.path}.#{association.primary_key}",
-      right_key: "#{schema1.path}.#{association.foreign_key}",
+      left_key: "#{schema2.path |> quote_alias(options)}.#{association.primary_key |> quote_alias(options)}",
+      right_key: "#{schema1.path |> quote_alias(options)}.#{association.foreign_key |> quote_alias(options)}",
       join_on: derive_join_on(schema2.path, association)
     }
   end
 
-  defp derive_schema_joins(:has_one = cardinality, schema1, schema2, association, _) do
+  defp derive_schema_joins(:has_one = cardinality, schema1, schema2, association, options) do
     %{
       cardinality: cardinality,
       table: association[:table_name] || schema2.table_name,
       path: schema2.path,
-      left_key: "#{schema2.path}.#{association.foreign_key}",
-      right_key: "#{schema1.path}.#{association.primary_key}",
+      left_key: "#{schema2.path |> quote_alias(options)}.#{association.foreign_key |> quote_alias(options)}",
+      right_key: "#{schema1.path |> quote_alias(options)}.#{association.primary_key |> quote_alias(options)}",
       join_on: derive_join_on(schema2.path, association)
     }
   end
 
-  defp derive_schema_joins(:has_many = cardinality, schema1, schema2, association, _) do
+  defp derive_schema_joins(:has_many = cardinality, schema1, schema2, association, options) do
     %{
       cardinality: cardinality,
       table: association[:table_name] || schema2.table_name,
       path: schema2.path,
-      left_key: "#{schema2.path}.#{association.foreign_key}",
-      right_key: "#{schema1.path}.#{association.primary_key}",
+      left_key: "#{schema2.path |> quote_alias(options)}.#{association.foreign_key |> quote_alias(options)}",
+      right_key: "#{schema1.path |> quote_alias(options)}.#{association.primary_key |> quote_alias(options)}",
       join_on: derive_join_on(schema2.path, association)
     }
   end
