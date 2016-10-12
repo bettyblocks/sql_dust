@@ -1,5 +1,9 @@
 ## SqlDust CHANGELOG
 
+### Version 0.3.6 (October 12, 2016)
+
+* Being able to tackle extreme naming of tables and columns (e.g. `this is some.weird.table_name`) (thanks @nulian)
+
 ### Version 0.3.5 (July 28, 2016)
 
 * No longer appending items to a list using `List.insert_at(-1, ...)` because that has a high performance impact (thanks @nulian)

@@ -3,7 +3,7 @@ defmodule SqlDust.Mixfile do
 
   def project do
     [app: :sql_dust,
-     version: "0.3.5",
+     version: "0.3.6",
      elixir: "~> 1.2",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
