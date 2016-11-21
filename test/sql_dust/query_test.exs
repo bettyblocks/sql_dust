@@ -389,10 +389,25 @@ defmodule SqlDust.QueryTest do
     end
   end
 
+  test "it generates the select for columns that start with a number" do
+    {sql, _} = select("1st_address as 1st_address")
+               |> select("second_address")
+               |> from("users")
+               |> to_sql
+
+    assert sql == """
+      SELECT
+        `u`.`1st_address` as `1st_address`,
+        `u`.`second_address`
+      FROM `users` `u`
+      """
+  end
+
   test "generating SQL using composed query dust" do
     sql = select("id, name")
       |> select("company.name")
       |> select("company.address.city")
+      |> select("company.1st_address")
       |> from("users")
       |> where(["id > ?", 100])
       |> where(["company.name LIKE ?", "%Engel%"])
@@ -413,7 +428,8 @@ defmodule SqlDust.QueryTest do
         `u`.`id`,
         `u`.`name`,
         `company`.`name`,
-        `company.address`.`city`
+        `company.address`.`city`,
+        `company`.`1st_address`
       FROM `people` `u`
       LEFT JOIN `companies` `company` ON `company`.`id` = `u`.`company_id`
       LEFT JOIN `addresses` `company.address` ON `company.address`.`company_id` = `company`.`id` AND `company.address`.`is_current` = ?
