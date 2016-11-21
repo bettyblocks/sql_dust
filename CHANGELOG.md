@@ -1,5 +1,9 @@
 ## SqlDust CHANGELOG
 
+### Version 0.3.7 (November 21, 2016)
+
+* Handle columns starting with integers properly (e.q. `users`.`1st_address`) (thanks @danielwillemse)
+
 ### Version 0.3.6 (October 12, 2016)
 
 * Being able to tackle extreme naming of tables and columns (e.g. `this is some.weird.table_name`) (thanks @nulian)
