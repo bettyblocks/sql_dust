@@ -1,5 +1,9 @@
 ## SqlDust CHANGELOG
 
+### Version 0.3.8 (November 22, 2016)
+
+* Handle columns ending with integers properly (e.q. `users`.`address1`) (thanks @Wijnand)
+
 ### Version 0.3.7 (November 21, 2016)
 
 * Handle columns starting with integers properly (e.q. `users`.`1st_address`) (thanks @danielwillemse)
