@@ -68,7 +68,7 @@ defmodule SqlDust.PathUtils do
   end
 
   defp scan_and_prepend_path_aliases(sql, options) do
-    regex = ~r/(?:\.\*|\w+[a-zA-Z](?:\.(?:\*|\w{2,}))*)/
+    regex = ~r/(?:\.\*|\w+[a-zA-Z]+\w*(?:\.(?:\*|\w{2,}))*)/
 
     paths = Regex.scan(regex, sql)
     sql = Regex.replace(regex, sql, fn(match) ->

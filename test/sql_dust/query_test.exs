@@ -403,6 +403,20 @@ defmodule SqlDust.QueryTest do
       """
   end
 
+  test "it generates the select for columns that ends with a number" do
+    {sql, _} = select("address1 as address1")
+               |> select("second_address")
+               |> from("users")
+               |> to_sql
+
+    assert sql == """
+      SELECT
+        `u`.`address1` as `address1`,
+        `u`.`second_address`
+      FROM `users` `u`
+      """
+  end
+
   test "generating SQL using composed query dust" do
     sql = select("id, name")
       |> select("company.name")
