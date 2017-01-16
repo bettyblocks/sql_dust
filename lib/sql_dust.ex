@@ -86,8 +86,15 @@ defmodule SqlDust do
     options
   end
 
+  defp derive_where(%{where: ""} = options), do: Map.put(options, :where, [])
+  defp derive_where(%{where: [""]} = options), do: Map.put(options, :where, [])
+  defp derive_where(%{where: []} = options), do: options
   defp derive_where(%{where: where} = options) do
-    where = where |> wrap_conditions() |> scrub_where()
+    where =
+      where
+      |> List.wrap()
+      |> sanitize_where()
+      |> wrap_conditions()
 
     {having, where} =
       where
@@ -108,18 +115,17 @@ defmodule SqlDust do
     options
   end
   defp derive_where(options), do: options
-
-  defp scrub_where(conditions) when is_list(conditions) do
-    Enum.filter(conditions, fn(condition) ->
+  defp sanitize_where(conditions) do
+    conditions
+    |> Enum.filter(fn(condition) ->
       case condition do
         condition when is_binary(condition) ->
-          String.trim(condition) |> String.length() > 0
-        condition when is_list(condition) ->
-          Enum.count(condition) > 0
+          condition |> String.trim() |> String.length > 0
+        [""|_tail] -> false
+        _ -> true
       end
     end)
   end
-
 
   defp derive_group_by(options) do
     if group_by = MapUtils.get(options, :group_by) do

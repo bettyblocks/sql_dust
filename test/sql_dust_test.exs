@@ -996,7 +996,7 @@ defmodule SqlDustTest do
     assert SqlDust.from("users", %{where: ["", "id = 1", "    "]}) == {"""
       SELECT `u`.*
       FROM `users` `u`
-      WHERE `u`.`name` = 1
+      WHERE (`u`.`id` = 1)
       """, []
     }
   end
