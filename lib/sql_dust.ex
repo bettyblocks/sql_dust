@@ -87,6 +87,7 @@ defmodule SqlDust do
     options
   end
 
+  defp derive_where(%{where: [""]} = options), do: options |> Map.put(:where, [])
   defp derive_where(options) do
     if where = MapUtils.get(options, :where) do
       where = where |> wrap_conditions
