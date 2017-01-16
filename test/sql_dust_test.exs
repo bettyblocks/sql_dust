@@ -992,5 +992,12 @@ defmodule SqlDustTest do
       FROM `users` `u`
       """, []
     }
+
+    assert SqlDust.from("users", %{where: ["", "id = 1", "    "]}) == {"""
+      SELECT `u`.*
+      FROM `users` `u`
+      WHERE `u`.`name` = 1
+      """, []
+    }
   end
 end

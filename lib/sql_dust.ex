@@ -10,7 +10,6 @@ defmodule SqlDust do
   @moduledoc """
     SqlDust is a module that generates SQL queries as intuitively as possible.
   """
-
   def from(resource, options \\ %{}, schema \\ %{}) do
     options = %{
       select: ".*",
@@ -87,29 +86,40 @@ defmodule SqlDust do
     options
   end
 
-  defp derive_where(%{where: [""]} = options), do: options |> Map.put(:where, [])
-  defp derive_where(options) do
-    if where = MapUtils.get(options, :where) do
-      where = where |> wrap_conditions
+  defp derive_where(%{where: where} = options) do
+    where = where |> wrap_conditions() |> scrub_where()
 
-      {having, where} = where
-        |> Enum.partition(fn([sql | _]) ->
-          sql = sanitize_sql(sql)
-          Enum.any?(options.aliases, fn(sql_alias) ->
-            String.match?(sql, ~r/(^|[^\.\w])#{sql_alias}([^\.\w]|$)/)
-          end)
+    {having, where} =
+      where
+      |> Enum.partition(fn([sql | _]) ->
+        sql = sanitize_sql(sql)
+        Enum.any?(options.aliases, fn(sql_alias) ->
+          String.match?(sql, ~r/(^|[^\.\w])#{sql_alias}([^\.\w]|$)/)
         end)
+      end)
 
-      options = parse_conditions(where, options, :where)
-      options = parse_conditions(having, options, :having)
+    options = parse_conditions(where, options, :where)
+    options = parse_conditions(having, options, :having)
 
-      if length(where) == 0 do
-        options = Map.delete(options, :where)
-      end
+    if length(where) == 0 do
+      options = Map.delete(options, :where)
     end
 
     options
   end
+  defp derive_where(options), do: options
+
+  defp scrub_where(conditions) when is_list(conditions) do
+    Enum.filter(conditions, fn(condition) ->
+      case condition do
+        condition when is_binary(condition) ->
+          String.trim(condition) |> String.length() > 0
+        condition when is_list(condition) ->
+          Enum.count(condition) > 0
+      end
+    end)
+  end
+
 
   defp derive_group_by(options) do
     if group_by = MapUtils.get(options, :group_by) do
