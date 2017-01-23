@@ -107,10 +107,7 @@ defmodule SqlDust do
 
     options = parse_conditions(where, options, :where)
     options = parse_conditions(having, options, :having)
-
-    if length(where) == 0 do
-      options = Map.delete(options, :where)
-    end
+    options = if length(where) == 0, do: Map.delete(options, :where), else: options
 
     options
   end
