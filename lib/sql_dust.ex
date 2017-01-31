@@ -117,7 +117,7 @@ defmodule SqlDust do
     |> Enum.filter(fn(condition) ->
       case condition do
         condition when is_binary(condition) ->
-          condition |> String.trim() |> String.length > 0
+          condition |> String.strip() |> String.length > 0
         [""|_tail] -> false
         _ -> true
       end
