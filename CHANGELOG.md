@@ -1,5 +1,10 @@
 ## SqlDust CHANGELOG
 
+### Version 0.3.9 (January 31, 2017)
+
+* Ignore empty WHERE statements
+* Allow Ecto 2
+
 ### Version 0.3.8 (November 22, 2016)
 
 * Handle columns ending with integers properly (e.q. `users`.`address1`) (thanks @Wijnand)
