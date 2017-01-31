@@ -10,7 +10,6 @@ defmodule SqlDust do
   @moduledoc """
     SqlDust is a module that generates SQL queries as intuitively as possible.
   """
-
   def from(resource, options \\ %{}, schema \\ %{}) do
     options = %{
       select: ".*",
@@ -87,27 +86,42 @@ defmodule SqlDust do
     options
   end
 
-  defp derive_where(options) do
-    if where = MapUtils.get(options, :where) do
-      where = where |> wrap_conditions
+  defp derive_where(%{where: ""} = options), do: Map.put(options, :where, [])
+  defp derive_where(%{where: [""]} = options), do: Map.put(options, :where, [])
+  defp derive_where(%{where: []} = options), do: options
+  defp derive_where(%{where: where} = options) do
+    where =
+      where
+      |> List.wrap()
+      |> sanitize_where()
+      |> wrap_conditions()
 
-      {having, where} = where
-        |> Enum.partition(fn([sql | _]) ->
-          sql = sanitize_sql(sql)
-          Enum.any?(options.aliases, fn(sql_alias) ->
-            String.match?(sql, ~r/(^|[^\.\w])#{sql_alias}([^\.\w]|$)/)
-          end)
+    {having, where} =
+      where
+      |> Enum.partition(fn([sql | _]) ->
+        sql = sanitize_sql(sql)
+        Enum.any?(options.aliases, fn(sql_alias) ->
+          String.match?(sql, ~r/(^|[^\.\w])#{sql_alias}([^\.\w]|$)/)
         end)
+      end)
 
-      options = parse_conditions(where, options, :where)
-      options = parse_conditions(having, options, :having)
-
-      if length(where) == 0 do
-        options = Map.delete(options, :where)
-      end
-    end
+    options = parse_conditions(where, options, :where)
+    options = parse_conditions(having, options, :having)
+    options = if length(where) == 0, do: Map.delete(options, :where), else: options
 
     options
+  end
+  defp derive_where(options), do: options
+  defp sanitize_where(conditions) do
+    conditions
+    |> Enum.filter(fn(condition) ->
+      case condition do
+        condition when is_binary(condition) ->
+          condition |> String.strip() |> String.length > 0
+        [""|_tail] -> false
+        _ -> true
+      end
+    end)
   end
 
   defp derive_group_by(options) do

@@ -985,4 +985,19 @@ defmodule SqlDustTest do
       FROM `people` `u`
       """, []}
   end
+
+  test "ignore WHERE with empty statement" do
+    assert SqlDust.from("users", %{where: [""]}) == {"""
+      SELECT `u`.*
+      FROM `users` `u`
+      """, []
+    }
+
+    assert SqlDust.from("users", %{where: ["", "id = 1", "    "]}) == {"""
+      SELECT `u`.*
+      FROM `users` `u`
+      WHERE (`u`.`id` = 1)
+      """, []
+    }
+  end
 end
