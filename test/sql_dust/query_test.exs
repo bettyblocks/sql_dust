@@ -288,7 +288,7 @@ defmodule SqlDust.QueryTest do
   end
 
   test "unique returns SqlDust containing :unique option (at default true)" do
-    query_dust = unique
+    query_dust = unique()
 
     assert query_dust == %SqlDust{
       unique: true

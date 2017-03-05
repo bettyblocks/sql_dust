@@ -80,10 +80,10 @@ defmodule SqlDust do
 
   defp derive_join_on(options) do
     if join_on = MapUtils.get(options, :join_on) do
-      options = join_on |> wrap_conditions |> parse_conditions(options, :join_on)
+      join_on |> wrap_conditions |> parse_conditions(options, :join_on)
+    else
+      options
     end
-
-    options
   end
 
   defp derive_where(%{where: ""} = options), do: Map.put(options, :where, [])
@@ -214,10 +214,13 @@ defmodule SqlDust do
   defp interpolate_option_variable(options, key, value) do
     variables = options.variables
 
-    unless value == "?" do
-      option_variables = (options.variables[:_options_] || %{}) |> Map.put(key, value)
-      variables = options.variables |> Map.put(:_options_, option_variables)
-    end
+    variables =
+      unless value == "?" do
+        option_variables = (options.variables[:_options_] || %{}) |> Map.put(key, value)
+        options.variables |> Map.put(:_options_, option_variables)
+      else
+        variables
+      end
 
     interpolated_key = "<<_options_." <> Atom.to_string(key)
 

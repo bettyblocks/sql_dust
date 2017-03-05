@@ -84,10 +84,13 @@ defmodule SqlDust.PathUtils do
   def prepend_path_alias(path, options, cascade \\ false) do
     {path, column} = dissect_path(path, options)
 
-    if cascade do
-      paths = Enum.concat(options[:paths], cascaded_paths(path))
-      options = Map.put(options, :paths, paths)
-    end
+    options =
+      if cascade do
+        paths = Enum.concat(options[:paths], cascaded_paths(path))
+        Map.put(options, :paths, paths)
+      else
+        options
+      end
 
     path_alias = derive_path_alias(path, options)
 

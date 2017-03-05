@@ -103,9 +103,7 @@ defmodule SqlDust.ScanUtils do
   def interpolate_patterns(sql, patterns) do
     Enum.reduce(patterns, sql, fn(pattern, sql) ->
       index = Enum.find_index(patterns, fn(value) -> value == pattern end)
-      if is_list(pattern) do
-        pattern = Enum.at(pattern, 1)
-      end
+      pattern = if is_list(pattern), do: Enum.at(pattern, 1), else: pattern
       String.replace(sql, "{#{index + 1}}", pattern)
     end)
   end
@@ -132,12 +130,9 @@ defmodule SqlDust.ScanUtils do
                               )
                             )
 
-                            if anonymous_key do
-                              key = nil
-                            end
-
                             sql = String.replace sql, match, "?", global: false
                             values = [value] ++ values
+                            key = if anonymous_key, do: nil, else: key
                             keys = [key] ++ keys
 
                             {sql, values, keys}
@@ -148,7 +143,7 @@ defmodule SqlDust.ScanUtils do
 
     sql = interpolate_patterns(sql, excluded)
     include_keys = Enum.any?(Map.keys(initial_variables), fn(key) ->
-                     if is_atom(key), do: key = Atom.to_string(key)
+                     key = if is_atom(key), do: Atom.to_string(key), else: key
                      !Regex.match?(~r(__\d+__), key)
                    end)
 
