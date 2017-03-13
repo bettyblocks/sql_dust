@@ -58,8 +58,8 @@ defmodule SqlDust.PathUtils do
       |> Enum.concat(scan_quoted(sql))
       |> Enum.concat(scan_variables(sql))
       |> Enum.concat(scan_functions(sql))
-      |> Enum.concat(scan_reserved_words(sql))
       |> Enum.concat(aliases = scan_aliases(sql) |> List.flatten |> Enum.uniq)
+      |> Enum.concat(scan_reserved_words(sql))
       |> List.flatten
       |> Enum.uniq
       
