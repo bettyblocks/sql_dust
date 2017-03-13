@@ -42,7 +42,6 @@ defmodule SqlDust do
 
   defp derive_select(options) do
     list = split_arguments(options[:select])
-
     {select, options} = list
       |> prepend_path_aliases(options)
 
