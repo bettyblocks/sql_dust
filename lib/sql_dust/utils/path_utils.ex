@@ -37,7 +37,6 @@ defmodule SqlDust.PathUtils do
       |> Enum.concat(Enum.map(aliases, fn(sql_alias) ->
         [~r/([^\.\w])#{sql_alias}([^\.\w])/, quote_alias(sql_alias, options)]
       end))
-
     options = Map.put(options, :aliases, aliases)
 
     sql = numerize_patterns(sql, excluded)
@@ -63,7 +62,7 @@ defmodule SqlDust.PathUtils do
       |> Enum.concat(scan_reserved_words(sql))
       |> List.flatten
       |> Enum.uniq
-
+      
     {excluded, aliases}
   end
 

@@ -104,7 +104,6 @@ defmodule SqlDust.JoinUtils do
       |> Enum.map(fn(join) ->
         {left_key, _} = prepend_path_alias(join.left_key, options)
         {right_key, _} = prepend_path_alias(join.right_key, options)
-
         additional_conditions = join[:join_on]
                                   |> List.wrap
                                   |> Enum.concat(additional_join_conditions(join.path, options))
