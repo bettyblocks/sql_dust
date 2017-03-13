@@ -76,7 +76,7 @@ defmodule SqlDust.ScanUtils do
   end
 
   def scan_reserved_words(sql) do
-    Regex.scan(~r/\b(distinct|and|or|is|like|rlike|interval|regexp|in|between|not|null|sounds|soundex|asc|desc|true|false)\b/i, sql)
+    Regex.scan(~r/\b(distinct|and|or|is|like|rlike|interval|week|month|dow|day|quarter|year|date|integer|float|text|regexp|in|between|not|null|sounds|soundex|asc|desc|true|false)\b/i, sql)
   end
 
   def numerize_patterns(sql, patterns) do
