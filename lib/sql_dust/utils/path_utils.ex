@@ -62,8 +62,7 @@ defmodule SqlDust.PathUtils do
       |> Enum.concat(aliases = scan_aliases(sql) |> List.flatten |> Enum.uniq)
       |> List.flatten
       |> Enum.uniq
-      |> IO.inspect
-
+      
     {excluded, aliases}
   end
 
