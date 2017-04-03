@@ -99,7 +99,7 @@ defmodule SqlDust.ScanUtils do
       end
     end)
   end
-
+require IEx
   def interpolate_patterns(sql, patterns) do
     Enum.reduce(patterns, sql, fn(pattern, sql) ->
       index = Enum.find_index(patterns, fn(value) -> value == pattern end)
