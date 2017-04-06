@@ -92,6 +92,12 @@ import ExProf.Macro
          "test12367 AS test12367"], unique: true,
          variables: %{scope: "NULL", scope_value: "NULL", var3: "1"},
          where: ["(id = <<var3>>)"]}
+  def run do
+    profile do
+      to_sql(@test)
+    end
+  end
+
   test "big select test" do
     to_sql(@test)
   end

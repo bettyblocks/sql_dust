@@ -1,17 +1,18 @@
 defmodule SqlDust.PathUtils do
+  @moduledoc false
   import SqlDust.ScanUtils
 
   def prepend_path_aliases(sql, options) when sql == "*" do
     {sql, options}
   end
-require IEx
+
   def prepend_path_aliases(sql, options) when is_list(sql) do
     list = prepend_path_aliases2(sql, options)
     {aliases, excluded} = list
      |> Enum.reduce({[], []}, fn({sql, aliases, excluded}, {aliases_list, excluded_list}) ->
        {[aliases | aliases_list], [[sql, excluded] | excluded_list]}
      end)
-     options = %{options | aliases: aliases |> List.flatten |> Enum.uniq |> Enum.reverse}
+     options = %{options | aliases: aliases |> List.flatten |> Enum.uniq}
      {sql, options} = excluded |> Enum.reduce({[], options}, fn([sql, excluded], {list, options}) ->
         sql = numerize_patterns(sql, excluded)
         {sql, options} = scan_and_prepend_path_aliases(sql, options)
@@ -35,20 +36,17 @@ require IEx
 
     aliases =
       aliases
-      |> Enum.map(fn
-        (" AS " <> sql_alias) -> sql_alias
-        (" as " <> sql_alias) -> sql_alias
-        (sql_alias) -> sql_alias
-      end)
+      |> Enum.map(&fix_sql_alias/1)
+      # |> Enum.concat(options.aliases)
+      # |> Enum.uniq
 
-    excluded = excluded
+    excluded =
+      excluded
       |> Enum.map(fn(excluded) ->
-        regex = ~r/^( AS )(.+)/i
-        if Regex.match?(regex, excluded) do
+        if match_excluded_alias(excluded) do
           {_, compiled} = Regex.compile(excluded)
-          [compiled, Regex.replace(regex, excluded, fn(_, as, path) ->
-            as <> quote_alias(path, options)
-          end)]
+          #we don't care about AS case since it's SQL
+          [compiled, " AS " <> quote_alias(fix_sql_alias(excluded), options)]
         else
           excluded
         end
@@ -63,20 +61,15 @@ require IEx
     {excluded, aliases} = scan_excluded(sql)
 
     aliases = aliases
-      |> Enum.map(fn(sql_alias) ->
-        String.replace(sql_alias, ~r/^ AS /i, "")
-      end)
+      |> Enum.map(&fix_sql_alias/1)
       |> Enum.concat(options.aliases)
       |> Enum.uniq
 
     excluded = excluded
       |> Enum.map(fn(excluded) ->
-        regex = ~r/^( AS )(.+)/i
-        if Regex.match?(regex, excluded) do
+        if match_excluded_alias(excluded) do
           {_, compiled} = Regex.compile(excluded)
-          [compiled, Regex.replace(regex, excluded, fn(_, as, path) ->
-            as <> quote_alias(path, options)
-          end)]
+          [compiled, " AS " <> quote_alias(fix_sql_alias(excluded), options)]
         else
           excluded
         end
@@ -94,13 +87,20 @@ require IEx
     {sql, options}
   end
 
-  def calculate_aliases([head|rest], options) do
+  defp fix_sql_alias(" AS " <> sql_alias), do: sql_alias
+  defp fix_sql_alias(" as " <> sql_alias), do: sql_alias
+  defp fix_sql_alias(sql_alias), do: sql_alias
+
+  defp match_excluded_alias(" AS "), do: false
+  defp match_excluded_alias(" AS "), do: false
+  defp match_excluded_alias(" AS " <> _), do: true
+  defp match_excluded_alias(" as " <> _), do: true
+  defp match_excluded_alias(_sql_alias), do: false
+
+  def calculate_aliases([head|_rest], options) do
     {excluded, aliases} = scan_excluded(head)
 
-    aliases = aliases
-          |> Enum.map(fn(sql_alias) ->
-            String.replace(sql_alias, ~r/^ AS /i, "")
-          end)
+    Enum.map(aliases, &fix_sql_alias/1)
   end
 
   def sanitize_sql(sql) do
@@ -128,12 +128,12 @@ require IEx
 
     paths = Regex.scan(regex, sql)
     sql = Regex.replace(regex, sql, fn(match) ->
-      "{#{match}}"
+      "{" <> match <> "}"
     end)
 
     Enum.reduce(paths, {sql, options}, fn([path], {sql, options}) ->
       {path_alias, options} = prepend_path_alias(path, options, true)
-      {String.replace(sql, "{#{path}}", path_alias), options}
+      {String.replace(sql, "{" <> path <> "}", path_alias), options}
     end)
   end
 
@@ -150,7 +150,7 @@ require IEx
 
     path_alias = derive_path_alias(path, options)
 
-    {"#{quote_alias(path_alias, options)}.#{quote_alias(column, options)}", options}
+    {quote_alias(path_alias, options) <> "." <> quote_alias(column, options), options}
   end
 
   def dissect_path(path, options) do
@@ -160,7 +160,7 @@ require IEx
 
   defp do_dissect_path(path, options) do
 
-    quotation_mark = quotation_mark(options)
+    quotation_mark = get_quotation_mark(options)
     split_on_dot_outside_quotation_mark = ~r/\.(?=(?:[^#{quotation_mark}]*#{quotation_mark}[^#{quotation_mark}]*#{quotation_mark})*[^#{quotation_mark}]*$)/
     segments = String.split(path, split_on_dot_outside_quotation_mark)
 
@@ -175,10 +175,11 @@ require IEx
   end
 
   defp cascaded_paths(path) do
-    Enum.reduce(path, [], fn
+    path
+    |> Enum.reduce([], fn
       (segment, paths) when segment in [nil, ""] -> paths
       (segment, []) -> [segment]
-      (segment, [h | _] = paths) -> [Enum.join([h, segment], ".")|paths]
+      (segment, [h | _] = paths) -> [h <> "." <> segment | paths]
     end)
     |> :lists.reverse()
   end
@@ -192,17 +193,17 @@ require IEx
   end
 
   defp derive_path_alias(path, options) do
-    case String.replace(path, quotation_mark(options), "") do
+    case String.replace(path, get_quotation_mark(options), "") do
       "" -> String.downcase(String.at(options.resource.name, 0))
       _ -> path
     end
   end
 
-  def quotation_mark(%{adapter: :mysql}) do
+  def get_quotation_mark(%{adapter: :mysql}) do
     "`"
   end
 
-  def quotation_mark(_) do
+  def get_quotation_mark(_) do
     "\""
   end
 
@@ -211,7 +212,7 @@ require IEx
   end
 
   def quote_alias(sql, options) do
-    quotation_mark = quotation_mark(options)
+    quotation_mark = get_quotation_mark(options)
     if Regex.match?(~r/\A#{quotation_mark}.*#{quotation_mark}\z/, sql) do
       sql
     else

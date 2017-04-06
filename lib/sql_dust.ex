@@ -179,22 +179,24 @@ defmodule SqlDust do
     if is_bitstring(head) && (length(Regex.scan(~r/\?/, head)) == length(tail)) do
       [conditions]
     else
-      Enum.map(conditions, fn(statement) -> List.wrap(statement) end)
+      Enum.map(conditions, &List.wrap/1)
     end
   end
 
   defp parse_conditions([], options, _), do: options
   defp parse_conditions(conditions, options, key) when key in [:where, :having] do
-    {conditions, options} = Enum.reduce(conditions, {[], options}, fn([sql | values], {conditions, options}) ->
-                              {sql, options} = prepend_path_aliases("(" <> sql <> ")", options)
-                              {List.insert_at(conditions, -1, [sql] |> Enum.concat(values)), options}
-                            end)
+    {conditions, options} =
+      conditions
+      |> Enum.reduce({[], options}, fn([sql | values], {conditions, options}) ->
+        {sql, options} = prepend_path_aliases("(" <> sql <> ")", options)
+        {[[sql | values] | conditions], options}
+      end)
+    conditions = :lists.reverse(conditions)
     parse_conditions(conditions, options, key, true)
   end
 
   defp parse_conditions(conditions, options, key, _ \\ true) do
     {conditions, options} = Enum.reduce(conditions, {[], options}, fn([sql | values], {conditions, options}) ->
-
                               {sql, variables} = values
                                                  |> Enum.reduce({sql, options.variables}, fn(value, {sql, variables}) ->
                                                    key = "__" <> to_string(Map.size(variables) + 1) <> "__"
@@ -204,9 +206,9 @@ defmodule SqlDust do
                                                  end)
 
                               options = Map.put(options, :variables, variables)
-                              {List.insert_at(conditions, -1, sql), options}
+                              {[sql | conditions], options}
                             end)
-
+    conditions = :lists.reverse(conditions)
     prefix = if key in [:where, :having], do: (Atom.to_string(key) |> String.upcase) <> " ", else: ""
     Map.put(options, key, prefix <> (conditions |> Enum.join(" AND ")))
   end
@@ -245,9 +247,7 @@ defmodule SqlDust do
       ""
     ]
       |> List.flatten
-      |> Enum.reject(
-        fn(x) -> is_nil(x) end
-      )
+      |> Enum.reject(&is_nil/1)
       |> Enum.join("\n")
       |> interpolate_variables(options.variables, options.initial_variables)
   end

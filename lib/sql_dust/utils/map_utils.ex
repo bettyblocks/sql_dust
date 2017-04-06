@@ -7,8 +7,7 @@ defmodule SqlDust.MapUtils do
   def deep_merge(map1, map2) do
     Map.keys(map1)
       |> Enum.concat(Map.keys(map2))
-      |> Enum.join(";")
-      |> String.split(";")
+      |> Enum.map(&stringify_key/1)
       |> Enum.reduce(%{}, fn(key, map) ->
         {val1, val2} = {get(map1, key), get(map2, key)}
         val = cond do
@@ -23,4 +22,7 @@ defmodule SqlDust.MapUtils do
   defp has_key?(map, key) do
     Map.has_key?(map, key) || Map.has_key?(map, String.to_atom(key))
   end
+
+  defp stringify_key(key) when is_bitstring(key), do: key
+  defp stringify_key(key), do: to_string(key)
 end

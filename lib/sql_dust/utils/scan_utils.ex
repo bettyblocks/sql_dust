@@ -18,10 +18,10 @@ defmodule SqlDust.ScanUtils do
       |> String.split(~r/\s*,\s*/)
       |> Enum.reduce({[], excluded}, fn(sql, {list, excluded}) ->
         sql = interpolate_parenthesized(sql, excluded)
-        {List.insert_at(list, -1, sql), excluded}
+        {[sql | list], excluded}
       end)
 
-    list
+    :lists.reverse(list)
   end
 
   defp numerize_parenthesized(sql, patterns) do
@@ -50,13 +50,11 @@ defmodule SqlDust.ScanUtils do
 
   def scan_quoted(sql) do
     Regex.scan(~r/(["'])(?:(?=(\\?))\2.)*?\1/, sql)
-      |> Enum.reduce([], fn(match, quoted) ->
-        match = hd(match)
-        case match do
-          "" -> quoted
-          _ -> List.insert_at(quoted, -1, match)
-        end
+      |> Enum.reduce([], fn
+        ([""|_], quoted) -> quoted
+        ([match|_], quoted) -> [match | quoted]
       end)
+      |> :lists.reverse
   end
 
   def scan_variables(sql) do
@@ -80,32 +78,42 @@ defmodule SqlDust.ScanUtils do
   end
 
   def numerize_patterns(sql, patterns) do
-    Enum.reduce(patterns, sql, fn(pattern, sql) ->
-      index = Enum.find_index(patterns, fn(value) -> value == pattern end)
-      if is_list(pattern) do
-        regex = Enum.at(pattern, 0)
-        Regex.replace(regex, sql, fn(_, prefix, postfix) ->
-          "#{prefix}{#{index + 1}}#{postfix}"
-        end)
-      else
+    Enum.reduce(patterns, {sql, 0}, fn
+      ([regex | _] = pattern, {sql, index}) when is_list(pattern) ->
+        index = index + 1
+        index_str = "{" <> to_string(index) <> "}"
+        {Regex.replace(regex, sql, fn(_, prefix, postfix) ->
+          prefix <> index_str <> postfix
+        end), index}
+      (pattern, {sql, index}) ->
+        index = index + 1
+        index_str = "{" <> to_string(index) <> "}"
+        sql =
         if Regex.match?(~r/^\w+$/, pattern) do
           {_, regex} = Regex.compile("(^|\\b)" <> pattern <> "(\\b|$)")
           Regex.replace(regex, sql, fn(_, prefix, postfix) ->
-            "#{prefix}{#{index + 1}}#{postfix}"
+            prefix <> index_str <> postfix
           end)
         else
-          String.replace(sql, pattern, "{#{index + 1}}")
+          String.replace(sql, pattern, index_str)
         end
-      end
+        {sql, index}
     end)
+    |> elem(0)
   end
-require IEx
+
   def interpolate_patterns(sql, patterns) do
-    Enum.reduce(patterns, sql, fn(pattern, sql) ->
-      index = Enum.find_index(patterns, fn(value) -> value == pattern end)
-      pattern = if is_list(pattern), do: Enum.at(pattern, 1), else: pattern
-      String.replace(sql, "{#{index + 1}}", pattern)
+    Enum.reduce(patterns, {sql, 0}, fn
+      ([_, pattern], {sql, index}) -> do_interpolate(pattern, sql, index)
+      ([_ | [pattern | _]], {sql, index}) -> do_interpolate(pattern, sql, index)
+      (pattern, {sql, index}) -> do_interpolate(pattern, sql, index)
     end)
+    |> elem(0)
+  end
+
+  defp do_interpolate(pattern, sql, index) do
+    index = index + 1
+    {String.replace(sql, "{#{index}}", pattern), index}
   end
 
   def interpolate_variables(sql, variables, initial_variables) do
@@ -123,17 +131,18 @@ require IEx
                                 !(initial_variables
                                   |> MapUtils.get(:_options_, %{})
                                   |> Map.keys
-                                  |> Enum.map(fn(k) ->
-                                       if is_atom(k), do: Atom.to_string(k), else: k
-                                     end)
-                                  |> Enum.member?(String.split(key, ".") |> Enum.at(1)))
+                                  |> Enum.map(fn
+                                    (k) when is_atom(k) -> Atom.to_string(k)
+                                    (k) -> k
+                                  end)
+                                  |> Enum.member?(String.split(key, ".", parts: 3) |> Enum.at(1)))
                               )
                             )
 
                             sql = String.replace sql, match, "?", global: false
-                            values = [value] ++ values
+                            values = [value | values]
                             key = if anonymous_key, do: nil, else: key
-                            keys = [key] ++ keys
+                            keys = [key | keys]
 
                             {sql, values, keys}
                           end)
