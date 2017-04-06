@@ -33,9 +33,12 @@ require IEx
   def prepend_path_aliases2(sql, options) when is_binary(sql) do
     {excluded, aliases} = scan_excluded(sql)
 
-    aliases = aliases
-      |> Enum.map(fn(sql_alias) ->
-        String.replace(sql_alias, ~r/^ AS /i, "")
+    aliases =
+      aliases
+      |> Enum.map(fn
+        (" AS " <> sql_alias) -> sql_alias
+        (" as " <> sql_alias) -> sql_alias
+        (sql_alias) -> sql_alias
       end)
 
     excluded = excluded
@@ -135,7 +138,7 @@ require IEx
   end
 
   def prepend_path_alias(path, options, cascade \\ false) do
-    {path, column} = dissect_path(path, options)
+    {path, column} = do_dissect_path(path, options)
 
     options =
       if cascade do
@@ -151,13 +154,20 @@ require IEx
   end
 
   def dissect_path(path, options) do
+    {path, column} = do_dissect_path(path, options)
+    {Enum.join(path, "."), column}
+  end
+
+  defp do_dissect_path(path, options) do
+
     quotation_mark = quotation_mark(options)
     split_on_dot_outside_quotation_mark = ~r/\.(?=(?:[^#{quotation_mark}]*#{quotation_mark}[^#{quotation_mark}]*#{quotation_mark})*[^#{quotation_mark}]*$)/
     segments = String.split(path, split_on_dot_outside_quotation_mark)
-    path = Enum.slice(segments, 0..-2)
-    column = List.last(segments)
 
-    {Enum.join(path, "."), column}
+    case Enum.split(segments, -1) do
+      {prefix, [last]} -> {prefix, last}
+      {[], []} -> {[], nil}
+    end
   end
 
   defp cascaded_paths(path) when is_bitstring(path) do
@@ -165,25 +175,24 @@ require IEx
   end
 
   defp cascaded_paths(path) do
-    Enum.reduce(path, [], fn(segment, paths) ->
-      path = []
-        |> List.insert_at(-1, List.last(paths))
-        |> List.insert_at(-1, segment)
-        |> Enum.reject(fn(x) -> x == nil end)
-        |> Enum.join(".")
-      case path do
-        "" -> paths
-        _ -> List.insert_at(paths, -1, path)
-      end
+    Enum.reduce(path, [], fn
+      (segment, paths) when segment in [nil, ""] -> paths
+      (segment, []) -> [segment]
+      (segment, [h | _] = paths) -> [Enum.join([h, segment], ".")|paths]
     end)
+    |> :lists.reverse()
   end
 
   def derive_quoted_path_alias(path, options) do
     quote_alias(derive_path_alias(path, options), options)
   end
 
+  defp derive_path_alias(path, options) when is_list(path) do
+    derive_path_alias(Enum.join(path, "."), options)
+  end
+
   defp derive_path_alias(path, options) do
-    case String.replace(path, "#{quotation_mark(options)}", "") do
+    case String.replace(path, quotation_mark(options), "") do
       "" -> String.downcase(String.at(options.resource.name, 0))
       _ -> path
     end
@@ -194,7 +203,7 @@ require IEx
   end
 
   def quotation_mark(_) do
-    '"'
+    "\""
   end
 
   def quote_alias("*" = sql, _) do
@@ -206,7 +215,7 @@ require IEx
     if Regex.match?(~r/\A#{quotation_mark}.*#{quotation_mark}\z/, sql) do
       sql
     else
-      "#{quotation_mark}#{sql}#{quotation_mark}"
+      quotation_mark <> sql <> quotation_mark
     end
   end
 end
