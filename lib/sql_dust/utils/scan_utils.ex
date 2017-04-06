@@ -21,7 +21,7 @@ defmodule SqlDust.ScanUtils do
         {[sql | list], excluded}
       end)
 
-    :lists.reverse(list)
+    Enum.reverse(list)
   end
 
   defp numerize_parenthesized(sql, patterns) do
@@ -89,14 +89,14 @@ defmodule SqlDust.ScanUtils do
         index = index + 1
         index_str = "{" <> to_string(index) <> "}"
         sql =
-        if Regex.match?(~r/^\w+$/, pattern) do
-          {_, regex} = Regex.compile("(^|\\b)" <> pattern <> "(\\b|$)")
-          Regex.replace(regex, sql, fn(_, prefix, postfix) ->
-            prefix <> index_str <> postfix
-          end)
-        else
-          String.replace(sql, pattern, index_str)
-        end
+          if Regex.match?(~r/^\w+$/, pattern) do
+            {_, regex} = Regex.compile("(^|\\b)" <> pattern <> "(\\b|$)")
+            Regex.replace(regex, sql, fn(_, prefix, postfix) ->
+              prefix <> index_str <> postfix
+            end)
+          else
+            String.replace(sql, pattern, index_str)
+          end
         {sql, index}
     end)
     |> elem(0)
@@ -104,14 +104,14 @@ defmodule SqlDust.ScanUtils do
 
   def interpolate_patterns(sql, patterns) do
     Enum.reduce(patterns, {sql, 0}, fn
-      ([_, pattern], {sql, index}) -> do_interpolate(pattern, sql, index)
-      ([_ | [pattern | _]], {sql, index}) -> do_interpolate(pattern, sql, index)
-      (pattern, {sql, index}) -> do_interpolate(pattern, sql, index)
+      ([_, pattern], {sql, index}) -> interpolate_pattern(pattern, sql, index)
+      ([_ | [pattern | _]], {sql, index}) -> interpolate_pattern(pattern, sql, index)
+      (pattern, {sql, index}) -> interpolate_pattern(pattern, sql, index)
     end)
     |> elem(0)
   end
 
-  defp do_interpolate(pattern, sql, index) do
+  defp interpolate_pattern(pattern, sql, index) do
     index = index + 1
     {String.replace(sql, "{#{index}}", pattern), index}
   end

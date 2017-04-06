@@ -20,63 +20,11 @@ defmodule SqlDust.PathUtils do
         sql = interpolate_patterns(sql, excluded)
         {[sql | list], options}
      end)
-    {sql,options}
-  end
-
-  def prepend_path_aliases2([head] = list, options) do
-    [prepend_path_aliases2(head, options)]
-  end
-
-  def prepend_path_aliases2([head|rest], options) do
-    [prepend_path_aliases2(head, options)|prepend_path_aliases2(rest, options)]
-  end
-
-  def prepend_path_aliases2(sql, options) when is_binary(sql) do
-    {excluded, aliases} = scan_excluded(sql)
-
-    aliases =
-      aliases
-      |> Enum.map(&fix_sql_alias/1)
-      # |> Enum.concat(options.aliases)
-      # |> Enum.uniq
-
-    excluded =
-      excluded
-      |> Enum.map(fn(excluded) ->
-        if match_excluded_alias(excluded) do
-          {_, compiled} = Regex.compile(excluded)
-          #we don't care about AS case since it's SQL
-          [compiled, " AS " <> quote_alias(fix_sql_alias(excluded), options)]
-        else
-          excluded
-        end
-      end)
-      |> Enum.concat(Enum.map(aliases, fn(sql_alias) ->
-        [~r/([^\.\w])#{sql_alias}([^\.\w])/, quote_alias(sql_alias, options)]
-      end))
-    {sql, aliases, excluded}
+    {sql, options}
   end
 
   def prepend_path_aliases(sql, options) do
-    {excluded, aliases} = scan_excluded(sql)
-
-    aliases = aliases
-      |> Enum.map(&fix_sql_alias/1)
-      |> Enum.concat(options.aliases)
-      |> Enum.uniq
-
-    excluded = excluded
-      |> Enum.map(fn(excluded) ->
-        if match_excluded_alias(excluded) do
-          {_, compiled} = Regex.compile(excluded)
-          [compiled, " AS " <> quote_alias(fix_sql_alias(excluded), options)]
-        else
-          excluded
-        end
-      end)
-      |> Enum.concat(Enum.map(aliases, fn(sql_alias) ->
-        [~r/([^\.\w])#{sql_alias}([^\.\w])/, quote_alias(sql_alias, options)]
-      end))
+    {sql, aliases, excluded} = prepend_path_aliases2(sql, options)
 
     options = Map.put(options, :aliases, aliases)
 
@@ -87,21 +35,55 @@ defmodule SqlDust.PathUtils do
     {sql, options}
   end
 
+
+  defp prepend_path_aliases2([head], options) do
+    [prepend_path_aliases2(head, options)]
+  end
+
+  defp prepend_path_aliases2([head|rest], options) do
+    [prepend_path_aliases2(head, options)|prepend_path_aliases2(rest, options)]
+  end
+
+  defp prepend_path_aliases2(sql, options) when is_binary(sql) do
+    {excluded, aliases} = scan_excluded(sql)
+
+    aliases =
+      aliases
+      |> Enum.map(&fix_sql_alias/1)
+      |> Enum.concat(options.aliases)
+      |> Enum.uniq
+
+    excluded = format_excluded_aliases(excluded, aliases, options)
+
+    {sql, aliases, excluded}
+  end
+
+  defp format_excluded_aliases(excluded, aliases, options) do
+    excluded
+      |> Enum.map(fn
+        (excluded) ->
+        if match_excluded_alias(excluded) do
+          {_, compiled} = Regex.compile(excluded)
+          [compiled, " AS " <> quote_alias(fix_sql_alias(excluded), options)]
+        else
+          excluded
+        end
+      end)
+      |> Enum.concat(Enum.map(aliases, fn(sql_alias) ->
+        [~r/([^\.\w])#{sql_alias}([^\.\w])/, quote_alias(sql_alias, options)]
+      end))
+  end
+
   defp fix_sql_alias(" AS " <> sql_alias), do: sql_alias
   defp fix_sql_alias(" as " <> sql_alias), do: sql_alias
   defp fix_sql_alias(sql_alias), do: sql_alias
 
   defp match_excluded_alias(" AS "), do: false
-  defp match_excluded_alias(" AS "), do: false
+  defp match_excluded_alias(" as "), do: false
   defp match_excluded_alias(" AS " <> _), do: true
   defp match_excluded_alias(" as " <> _), do: true
   defp match_excluded_alias(_sql_alias), do: false
 
-  def calculate_aliases([head|_rest], options) do
-    {excluded, aliases} = scan_excluded(head)
-
-    Enum.map(aliases, &fix_sql_alias/1)
-  end
 
   def sanitize_sql(sql) do
     {excluded, _} = scan_excluded(sql)
@@ -115,7 +97,7 @@ defmodule SqlDust.PathUtils do
       |> Enum.concat(scan_quoted(sql))
       |> Enum.concat(scan_variables(sql))
       |> Enum.concat(scan_functions(sql))
-      |> Enum.concat(aliases = scan_aliases(sql) |> List.flatten |> Enum.uniq)
+      |> Enum.concat(aliases = (sql |> scan_aliases() |> List.flatten |> Enum.uniq))
       |> Enum.concat(scan_reserved_words(sql))
       |> List.flatten
       |> Enum.uniq
@@ -160,8 +142,8 @@ defmodule SqlDust.PathUtils do
 
   defp do_dissect_path(path, options) do
 
-    quotation_mark = get_quotation_mark(options)
-    split_on_dot_outside_quotation_mark = ~r/\.(?=(?:[^#{quotation_mark}]*#{quotation_mark}[^#{quotation_mark}]*#{quotation_mark})*[^#{quotation_mark}]*$)/
+    quotation_symbol = quotation_mark(options)
+    split_on_dot_outside_quotation_mark = ~r/\.(?=(?:[^#{quotation_symbol}]*#{quotation_symbol}[^#{quotation_symbol}]*#{quotation_symbol})*[^#{quotation_symbol}]*$)/
     segments = String.split(path, split_on_dot_outside_quotation_mark)
 
     case Enum.split(segments, -1) do
@@ -181,7 +163,7 @@ defmodule SqlDust.PathUtils do
       (segment, []) -> [segment]
       (segment, [h | _] = paths) -> [h <> "." <> segment | paths]
     end)
-    |> :lists.reverse()
+    |> Enum.reverse()
   end
 
   def derive_quoted_path_alias(path, options) do
@@ -193,17 +175,17 @@ defmodule SqlDust.PathUtils do
   end
 
   defp derive_path_alias(path, options) do
-    case String.replace(path, get_quotation_mark(options), "") do
+    case String.replace(path, quotation_mark(options), "") do
       "" -> String.downcase(String.at(options.resource.name, 0))
       _ -> path
     end
   end
 
-  def get_quotation_mark(%{adapter: :mysql}) do
+  def quotation_mark(%{adapter: :mysql}) do
     "`"
   end
 
-  def get_quotation_mark(_) do
+  def quotation_mark(_) do
     "\""
   end
 
@@ -212,11 +194,11 @@ defmodule SqlDust.PathUtils do
   end
 
   def quote_alias(sql, options) do
-    quotation_mark = get_quotation_mark(options)
-    if Regex.match?(~r/\A#{quotation_mark}.*#{quotation_mark}\z/, sql) do
+    quotation_symbol = quotation_mark(options)
+    if Regex.match?(~r/\A#{quotation_symbol}.*#{quotation_symbol}\z/, sql) do
       sql
     else
-      quotation_mark <> sql <> quotation_mark
+      quotation_symbol <> sql <> quotation_symbol
     end
   end
 end

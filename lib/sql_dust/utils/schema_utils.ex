@@ -7,7 +7,7 @@ defmodule SqlDust.SchemaUtils do
         ("", segments) -> segments
         (segment, segments) -> [segment | segments]
       end)
-      |> :lists.reverse()
+      |> Enum.reverse()
       |> derive_schema(association, options)
   end
 

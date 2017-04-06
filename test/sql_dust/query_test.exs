@@ -397,7 +397,7 @@ defmodule SqlDust.QueryTest do
 
     assert sql == """
       SELECT
-        `u`.`1st_address` as `1st_address`,
+        `u`.`1st_address` AS `1st_address`,
         `u`.`second_address`
       FROM `users` `u`
       """
@@ -411,7 +411,7 @@ defmodule SqlDust.QueryTest do
 
     assert sql == """
       SELECT
-        `u`.`address1` as `address1`,
+        `u`.`address1` AS `address1`,
         `u`.`second_address`
       FROM `users` `u`
       """

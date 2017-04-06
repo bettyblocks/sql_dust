@@ -191,7 +191,7 @@ defmodule SqlDust do
         {sql, options} = prepend_path_aliases("(" <> sql <> ")", options)
         {[[sql | values] | conditions], options}
       end)
-    conditions = :lists.reverse(conditions)
+    conditions = Enum.reverse(conditions)
     parse_conditions(conditions, options, key, true)
   end
 
@@ -208,7 +208,7 @@ defmodule SqlDust do
                               options = Map.put(options, :variables, variables)
                               {[sql | conditions], options}
                             end)
-    conditions = :lists.reverse(conditions)
+    conditions = Enum.reverse(conditions)
     prefix = if key in [:where, :having], do: (Atom.to_string(key) |> String.upcase) <> " ", else: ""
     Map.put(options, key, prefix <> (conditions |> Enum.join(" AND ")))
   end
@@ -224,10 +224,10 @@ defmodule SqlDust do
         variables
       end
 
-    interpolated_key = "<<_options_." <> Atom.to_string(key)
+    interpolated_key = " <<_options_." <> Atom.to_string(key) <> ">>"
 
     options
-      |> Map.put(key, (Atom.to_string(key) |> String.upcase) <> " " <> interpolated_key <> ">>")
+      |> Map.put(key, (Atom.to_string(key) |> String.upcase) <> interpolated_key)
       |> Map.put(:variables, variables)
   end
 
