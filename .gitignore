@@ -1,5 +1,5 @@
 /_build
-/bench
+/bench/snapshots
 /doc
 /cover
 /deps

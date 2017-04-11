@@ -7,24 +7,26 @@ defmodule SqlDust.PathUtils do
   end
 
   def prepend_path_aliases(sql, options) when is_list(sql) do
-    list = prepend_path_aliases2(sql, options)
-    {aliases, excluded} = list
-     |> Enum.reduce({[], []}, fn({sql, aliases, excluded}, {aliases_list, excluded_list}) ->
-       {[aliases | aliases_list], [[sql, excluded] | excluded_list]}
-     end)
-     options = %{options | aliases: aliases |> List.flatten |> Enum.uniq}
-     {sql, options} = excluded |> Enum.reduce({[], options}, fn([sql, excluded], {list, options}) ->
+    {aliases, excluded} =
+      sql
+      |> Enum.reduce({[], []}, fn(sql, {aliases_list, excluded_list}) ->
+        {sql, aliases, excluded} = scan_and_format_aliases(sql, options)
+        {[aliases | aliases_list], [{sql, excluded} | excluded_list]}
+      end)
+    options = %{options | aliases: aliases |> List.flatten |> Enum.uniq}
+    {sql, options} = excluded |> Enum.reverse() |> Enum.reduce({[], options}, fn({sql, excluded}, {list, options}) ->
+
         sql = numerize_patterns(sql, excluded)
         {sql, options} = scan_and_prepend_path_aliases(sql, options)
 
         sql = interpolate_patterns(sql, excluded)
         {[sql | list], options}
      end)
-    {sql, options}
+    {Enum.reverse(sql) , options}
   end
 
   def prepend_path_aliases(sql, options) do
-    {sql, aliases, excluded} = prepend_path_aliases2(sql, options)
+    {sql, aliases, excluded} = scan_and_format_aliases(sql, options)
 
     options = Map.put(options, :aliases, aliases)
 
@@ -35,16 +37,7 @@ defmodule SqlDust.PathUtils do
     {sql, options}
   end
 
-
-  defp prepend_path_aliases2([head], options) do
-    [prepend_path_aliases2(head, options)]
-  end
-
-  defp prepend_path_aliases2([head|rest], options) do
-    [prepend_path_aliases2(head, options)|prepend_path_aliases2(rest, options)]
-  end
-
-  defp prepend_path_aliases2(sql, options) when is_binary(sql) do
+  defp scan_and_format_aliases(sql, options) when is_binary(sql) do
     {excluded, aliases} = scan_excluded(sql)
 
     aliases =
