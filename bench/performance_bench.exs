@@ -92,7 +92,53 @@ defmodule PerformanceTest do
          "test12367 AS test12367"], unique: true,
          variables: %{scope: "NULL", scope_value: "NULL", var3: "1"},
          where: ["(id = <<var3>>)"]}
-  bench "big select test" do
+
+  bench "big select (hardcoded)" do
     to_sql(@test)
+  end
+
+  bench "big select (hardcoded) v2", [query: gen_query()] do
+    to_sql(query)
+  end
+
+  bench "small query" do
+    to_sql(@simple_test)
+  end
+
+  bench "big joins via select field", [query: join_selects(60)] do
+    to_sql(query)
+  end
+
+  bench "med joins via select field", [query: join_selects(20)] do
+    to_sql(query)
+  end
+
+  bench "big joins via schema & select", [query: schema_joins(60)] do
+    to_sql(query)
+  end
+
+  bench "med joins via schema & select", [query: schema_joins(20)] do
+    to_sql(query)
+  end
+
+  def schema_joins(i) do
+    address = %{table_name: "addresses"}
+    {address, select} =
+      Enum.reduce(1..i, {address, []}, fn(index, {address, select}) ->
+        index = to_string(index)
+        data = %{cardinality: :belongs_to, foreign_key: "address_id",
+          table_name: "table" <> index <> "s"}
+        {Map.put(address, index <> "a", data), [index <> "a.item as field" <> index | select]}
+      end)
+    %{@test | schema: %{:Address => address}, select: select}
+  end
+
+  def join_selects(i) do
+    select = Enum.map(1..i, fn(index) -> "#{index}table.param as #{index}p" end)
+    %{@test | select: select}
+  end
+
+  def gen_query() do
+    %{@test | from: "User", join_on: [["users.role_id = ?", "1"]]}
   end
 end

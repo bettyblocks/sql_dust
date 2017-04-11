@@ -1,6 +1,8 @@
 defmodule SqlDust.ScanUtils do
   alias SqlDust.MapUtils
 
+  @variable_regex ~r/<<([\w\.]+)>>/
+
   def split_arguments(sql) when is_list(sql) do
     sql
       |> List.flatten
@@ -121,41 +123,44 @@ defmodule SqlDust.ScanUtils do
     excluded = scan_quoted(sql)
     sql = numerize_patterns(sql, excluded)
 
-    {sql, values, keys} = Regex.scan(~r/<<([\w\.]+)>>/, sql)
-                          |> Enum.reduce({sql, [], []}, fn([match, key], {sql, values, keys}) ->
-                            value = String.split(key, ".") |> Enum.reduce(variables, fn(name, variables) ->
-                              MapUtils.get(variables, name)
-                            end)
 
-                            anonymous_key = Regex.match?(~r(__\d+__), key) || (
-                              String.contains?(key, "_options_") && (
-                                !(initial_variables
-                                  |> MapUtils.get(:_options_, %{})
-                                  |> Map.keys
-                                  |> Enum.map(fn
-                                    (k) when is_atom(k) -> Atom.to_string(k)
-                                    (k) -> k
-                                  end)
-                                  |> Enum.member?(String.split(key, ".", parts: 3) |> Enum.at(1)))
-                              )
-                            )
+    {sql, values, keys} =
+      @variable_regex
+      |> Regex.scan(sql)
+      |> Enum.reduce({sql, [], []}, fn([match, key], {sql, values, keys}) ->
+        value = String.split(key, ".") |> Enum.reduce(variables, fn(name, variables) ->
+          MapUtils.get(variables, name)
+        end)
 
-                            sql = String.replace sql, match, "?", global: false
-                            values = [value | values]
-                            key = if anonymous_key, do: nil, else: key
-                            keys = [key | keys]
+        anonymous_key =
+          Regex.match?(~r(__\d+__), key) || (
+            String.contains?(key, "_options_") && (
+              !(initial_variables
+              |> MapUtils.get(:_options_, %{})
+              |> Map.keys
+              |> Enum.map(fn
+                (k) when is_atom(k) -> Atom.to_string(k)
+                (k) -> k
+              end)
+              |> Enum.member?(String.split(key, ".", parts: 3) |> Enum.at(1)))
+            )
+          )
 
-                            {sql, values, keys}
-                          end)
+        sql = String.replace sql, match, "?", global: false
+        values = [value | values]
+        key = if anonymous_key, do: nil, else: key
+        keys = [key | keys]
+        {sql, values, keys}
+      end)
 
     values = Enum.reverse(values)
     keys = Enum.reverse(keys)
 
     sql = interpolate_patterns(sql, excluded)
     include_keys = Enum.any?(Map.keys(initial_variables), fn(key) ->
-                     key = if is_atom(key), do: Atom.to_string(key), else: key
-                     !Regex.match?(~r(__\d+__), key)
-                   end)
+      key = if is_atom(key), do: Atom.to_string(key), else: key
+      !Regex.match?(~r(__\d+__), key)
+    end)
 
     if include_keys do
       {sql, values, keys}
