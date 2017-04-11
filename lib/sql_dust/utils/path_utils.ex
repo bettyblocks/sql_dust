@@ -100,16 +100,24 @@ defmodule SqlDust.PathUtils do
 
   defp scan_and_prepend_path_aliases(sql, options) do
     regex = ~r/(?:\.\*|\w+[a-zA-Z]+\w*(?:\.(?:\*|\w{2,}))*)/
+    parts = regex
+    |> Regex.split(sql, [include_captures: true])
+    analyze_aliases(parts, [], options, false)
+  end
 
-    paths = Regex.scan(regex, sql)
-    sql = Regex.replace(regex, sql, fn(match) ->
-      "{" <> match <> "}"
-    end)
-
-    Enum.reduce(paths, {sql, options}, fn([path], {sql, options}) ->
-      {path_alias, options} = prepend_path_alias(path, options, true)
-      {String.replace(sql, "{" <> path <> "}", path_alias), options}
-    end)
+  defp analyze_aliases([h], out, options, false) do
+    {[h | out] |> Enum.reverse() |> Enum.join(""), options}
+  end
+  defp analyze_aliases([path], out, options, true) do
+    {path_alias, options} = prepend_path_alias(path, options, true)
+    analyze_aliases([path_alias], out, options, false)
+  end
+  defp analyze_aliases([h | t], out, options, false) do
+    analyze_aliases(t, [h | out], options, true)
+  end
+  defp analyze_aliases([path | rest], out, options, true) do
+    {path_alias, options} = prepend_path_alias(path, options, true)
+    analyze_aliases(rest, [path_alias | out], options, false)
   end
 
   def prepend_path_alias(path, options, cascade \\ false) do

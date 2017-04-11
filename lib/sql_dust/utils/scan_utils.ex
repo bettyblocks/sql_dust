@@ -103,7 +103,8 @@ defmodule SqlDust.ScanUtils do
   end
 
   def interpolate_patterns(sql, patterns) do
-    Enum.reduce(patterns, {sql, 0}, fn
+    patterns
+    |> Enum.reduce({sql, 0}, fn
       ([_, pattern], {sql, index}) -> interpolate_pattern(pattern, sql, index)
       ([_ | [pattern | _]], {sql, index}) -> interpolate_pattern(pattern, sql, index)
       (pattern, {sql, index}) -> interpolate_pattern(pattern, sql, index)
