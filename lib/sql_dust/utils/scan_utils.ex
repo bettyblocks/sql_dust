@@ -56,7 +56,7 @@ defmodule SqlDust.ScanUtils do
         ([""|_], quoted) -> quoted
         ([match|_], quoted) -> [match | quoted]
       end)
-      |> :lists.reverse
+      |> Enum.reverse()
   end
 
   def scan_variables(sql) do
