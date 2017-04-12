@@ -13,13 +13,13 @@ defmodule SqlDust.Mixfile do
   end
 
   def application do
-    [applications: [:logger, :benchfella]]
+    [applications: [:logger]]
   end
 
   defp deps do
     [
-      {:exprof, "~> 0.2.0"},
-      {:benchfella, "~> 0.3.0"},
+      {:exprof, "~> 0.2.0", optional: true},
+      {:benchfella, "~> 0.3.0", optional: true},
       {:inflex, "~> 1.6.0"},
       {:ecto, ">= 1.1.0", optional: true},
       {:earmark, "~> 0.1", only: :dev},

@@ -19,90 +19,20 @@ defmodule PerformanceTest do
                association_primary_key: "id", bridge_table: "roles_users",
                cardinality: :has_and_belongs_to_many, foreign_key: "user_id",
                primary_key: "id", resource: "Role"}}},
-         select: ["test12315 AS test12315", "test12327 AS test12327",
-          "test12312 AS test12312", "test12376 AS test12376", "test12310 AS test12310",
-          "test12323 AS test12323", "test12350 AS test12350", "test12359 AS test12359",
-          "test12360 AS test12360", "test12356 AS test12356", "test1239 AS test1239",
-          "test12345 AS test12345", "test12335 AS test12335", "test12333 AS test12333",
-          "test12366 AS test12366", "test12354 AS test12354", "test12378 AS test12378",
-          "test12313 AS test12313", "street AS street", "test12328 AS test12328",
-          "test12321 AS test12321", "test12373 AS test12373", "test12322 AS test12322",
-          "test12318 AS test12318", "test12332 AS test12332", "test12361 AS test12361",
-          "test12331 AS test12331", "test12383 AS test12383", "test12348 AS test12348",
-          "test12347 AS test12347", "updated_at AS updated_at",
-          "test12369 AS test12369", "test12362 AS test12362", "test12338 AS test12338",
-          "test12381 AS test12381", "test1238 AS test1238", "created_at AS created_at",
-          "test12330 AS test12330", "test12342 AS test12342", "test12351 AS test12351",
-          "test12367 AS test12367", "test12315 AS test12315", "test12327 AS test12327",
-          "test12312 AS test12312", "test12376 AS test12376", "test12310 AS test12310",
-          "test12323 AS test12323", "test12350 AS test12350", "test12359 AS test12359",
-          "test12360 AS test12360", "test12356 AS test12356", "test1239 AS test1239",
-          "test12345 AS test12345", "test12335 AS test12335", "test12333 AS test12333",
-          "test12366 AS test12366", "test12354 AS test12354", "test12378 AS test12378",
-          "test12313 AS test12313", "street AS street", "test12328 AS test12328",
-          "test12321 AS test12321", "test12373 AS test12373", "test12322 AS test12322",
-          "test12318 AS test12318", "test12332 AS test12332", "test12361 AS test12361",
-          "test12331 AS test12331", "test12383 AS test12383", "test12348 AS test12348",
-          "test12347 AS test12347", "updated_at AS updated_at",
-          "test12369 AS test12369", "test12362 AS test12362", "test12338 AS test12338",
-          "test12381 AS test12381", "test1238 AS test1238", "created_at AS created_at",
-          "test12330 AS test12330", "test12342 AS test12342", "test12351 AS test12351",
-          "test12367 AS test12367","test12315 AS test12315", "test12327 AS test12327",
-           "test12312 AS test12312", "test12376 AS test12376", "test12310 AS test12310",
-           "test12323 AS test12323", "test12350 AS test12350", "test12359 AS test12359",
-           "test12360 AS test12360", "test12356 AS test12356", "test1239 AS test1239",
-           "test12345 AS test12345", "test12335 AS test12335", "test12333 AS test12333",
-           "test12366 AS test12366", "test12354 AS test12354", "test12378 AS test12378",
-           "test12313 AS test12313", "street AS street", "test12328 AS test12328",
-           "test12321 AS test12321", "test12373 AS test12373", "test12322 AS test12322",
-           "test12318 AS test12318", "test12332 AS test12332", "test12361 AS test12361",
-           "test12331 AS test12331", "test12383 AS test12383", "test12348 AS test12348",
-           "test12347 AS test12347", "updated_at AS updated_at",
-           "test12369 AS test12369", "test12362 AS test12362", "test12338 AS test12338",
-           "test12381 AS test12381", "test1238 AS test1238", "created_at AS created_at",
-           "test12330 AS test12330", "test12342 AS test12342", "test12351 AS test12351",
-           "test12367 AS test12367","test12315 AS test12315", "test12327 AS test12327",
-          "test12312 AS test12312", "test12376 AS test12376", "test12310 AS test12310",
-          "test12323 AS test12323", "test12350 AS test12350", "test12359 AS test12359",
-          "test12360 AS test12360", "test12356 AS test12356", "test1239 AS test1239",
-          "test12345 AS test12345", "test12335 AS test12335", "test12333 AS test12333",
-          "test12366 AS test12366", "test12354 AS test12354", "test12378 AS test12378",
-          "test12313 AS test12313", "street AS street", "test12328 AS test12328",
-          "test12321 AS test12321", "test12373 AS test12373", "test12322 AS test12322",
-          "test12318 AS test12318", "test12332 AS test12332", "test12361 AS test12361",
-          "test12331 AS test12331", "test12383 AS test12383", "test12348 AS test12348",
-          "test12347 AS test12347", "updated_at AS updated_at",
-          "test12369 AS test12369", "test12362 AS test12362", "test12338 AS test12338",
-          "test12381 AS test12381", "test1238 AS test1238", "created_at AS created_at",
-          "test12330 AS test12330", "test12342 AS test12342", "test12351 AS test12351",
-          "test12367 AS test12367","test12315 AS test12315", "test12327 AS test12327",
-         "test12312 AS test12312", "test12376 AS test12376", "test12310 AS test12310",
-         "test12323 AS test12323", "test12350 AS test12350", "test12359 AS test12359",
-         "test12360 AS test12360", "test12356 AS test12356", "test1239 AS test1239",
-         "test12345 AS test12345", "test12335 AS test12335", "test12333 AS test12333",
-         "test12366 AS test12366", "test12354 AS test12354", "test12378 AS test12378",
-         "test12313 AS test12313", "street AS street", "test12328 AS test12328",
-         "test12321 AS test12321", "test12373 AS test12373", "test12322 AS test12322",
-         "test12318 AS test12318", "test12332 AS test12332", "test12361 AS test12361",
-         "test12331 AS test12331", "test12383 AS test12383", "test12348 AS test12348",
-         "test12347 AS test12347", "updated_at AS updated_at",
-         "test12369 AS test12369", "test12362 AS test12362", "test12338 AS test12338",
-         "test12381 AS test12381", "test1238 AS test1238", "created_at AS created_at",
-         "test12330 AS test12330", "test12342 AS test12342", "test12351 AS test12351",
-         "test12367 AS test12367"], unique: true,
+         select: [], unique: true,
          variables: %{scope: "NULL", scope_value: "NULL", var3: "1"},
          where: ["(id = <<var3>>)"]}
 
-  bench "big select (hardcoded)" do
-    to_sql(@test)
+  bench "big select (hardcoded)", [query: selects(120)] do
+    to_sql(query)
   end
 
   bench "big select (hardcoded) v2", [query: gen_query()] do
     to_sql(query)
   end
 
-  bench "small query" do
-    to_sql(@simple_test)
+  bench "small query", [query: selects(2)] do
+    to_sql(query)
   end
 
   bench "big joins via select field", [query: join_selects(60)] do
@@ -138,7 +68,15 @@ defmodule PerformanceTest do
     %{@test | select: select}
   end
 
+  def selects(i) do
+    %{@test | select: select_list(i)}
+  end
+
+  defp select_list(i) do
+    Enum.map(1..i, fn(index) -> "test#{index} AS test#{index}" end)
+  end
+
   def gen_query() do
-    %{@test | from: "User", join_on: [["users.role_id = ?", "1"]]}
+    %{@test | from: "User", join_on: [["users.role_id = ?", "1"]], select: select_list(120)}
   end
 end
