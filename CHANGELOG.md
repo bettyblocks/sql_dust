@@ -1,5 +1,9 @@
 ## SqlDust CHANGELOG
 
+### Version 0.3.10 (April 12, 2017)
+
+* Improved query generation performance (thanks to @art4ride and @nulian)
+
 ### Version 0.3.9 (January 31, 2017)
 
 * Ignore empty WHERE statements
