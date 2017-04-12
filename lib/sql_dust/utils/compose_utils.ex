@@ -66,12 +66,9 @@ defmodule SqlDust.ComposeUtils do
         from = options.from
         schema = options.schema
         options = Map.take(options, [:select, :join_on, :where, :group_by, :order_by, :limit, :offset, :unique, :variables, :adapter])
-                  |> Enum.reduce(%{from: options.from}, fn({key, value}, map) ->
-                    if is_nil(value) do
-                      map
-                    else
-                      Map.put(map, key, value)
-                    end
+                  |> Enum.reduce(%{from: options.from}, fn
+                    ({_key,  nil}, map) -> map
+                    ({key, value}, map) -> Map.put(map, key, value)
                   end)
 
         SqlDust.from(from, options, schema || %{})

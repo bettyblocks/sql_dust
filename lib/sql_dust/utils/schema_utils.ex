@@ -3,12 +3,11 @@ defmodule SqlDust.SchemaUtils do
 
   def derive_schema(path, association, options) when is_bitstring(path) do
     String.split(path, ".")
-      |> Enum.reduce([], fn(segment, segments) ->
-        case segment do
-          "" -> segments
-          _ -> List.insert_at(segments, -1, segment)
-        end
+      |> Enum.reduce([], fn
+        ("", segments) -> segments
+        (segment, segments) -> [segment | segments]
       end)
+      |> Enum.reverse()
       |> derive_schema(association, options)
   end
 
