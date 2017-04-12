@@ -269,7 +269,7 @@ All the SqlDust features are tested in [test/sql_dust_test.exs](https://github.c
 
 ## License
 
-Copyright (c) 2016 Paul Engel, released under the MIT License
+Copyright (c) 2017 Paul Engel, released under the MIT License
 
 http://github.com/archan937 – http://twitter.com/archan937 – pm_engel@icloud.com
 
