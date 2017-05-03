@@ -1,5 +1,5 @@
 defmodule Ecto.SqlDust do
-  use SqlDust.ComposeUtils
+  use SqlDust.QueryUtils
 
   def from(options, model) do
     resource = model.__schema__(:source)
