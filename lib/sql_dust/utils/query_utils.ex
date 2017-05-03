@@ -21,6 +21,44 @@ defmodule SqlDust.QueryUtils do
         SqlDust.from(from, options, schema || %{})
       end
 
+      def to_lists(options, repo) do
+        %{columns: columns, rows: rows} = query(options, repo)
+
+        case length(columns) do
+          1 -> List.flatten(rows)
+          _ -> rows
+        end
+      end
+
+      def to_maps(options, repo) do
+        %{columns: columns, rows: rows} = query(options, repo)
+
+        rows
+        |> Enum.map(fn(row) ->
+          columns
+          |> Enum.zip(row)
+          |> Enum.into(%{})
+        end)
+      end
+
+      defp query(options, repo) do
+        repo_adapter =
+          repo.config[:adapter]
+          |> Module.split()
+          |> Enum.at(-1)
+          |> String.downcase()
+          |> String.to_atom()
+
+        [sql, vars] =
+          options
+          |> adapter(repo_adapter)
+          |> to_sql()
+          |> Tuple.to_list
+          |> Enum.take(2)
+
+        Ecto.Adapters.SQL.query!(repo, sql, vars)
+      end
+
     end
   end
 end
