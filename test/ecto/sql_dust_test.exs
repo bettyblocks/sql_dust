@@ -122,6 +122,22 @@ defmodule Ecto.SqlDustTest do
         %{"name" => "Amsterdam"}
       ] == Test.City |> select(:name) |> order_by("name DESC") |> to_maps(TestRepo)
     end
+
+    test ".to_structs()" do
+      assert [
+        %Test.City{id: 1, name: "Amsterdam"},
+        %Test.City{id: 2, name: "New York"},
+        %Test.City{id: 3, name: "Barcelona"},
+        %Test.City{id: 4, name: "London"}
+      ] = Test.City |> to_structs(TestRepo)
+
+      assert [
+        %Test.City{id: 2, name: "New York"},
+        %Test.City{id: 4, name: "London"},
+        %Test.City{id: 3, name: "Barcelona"},
+        %Test.City{id: 1, name: "Amsterdam"}
+      ] = Test.City |> order_by("name DESC") |> to_structs(TestRepo)
+    end
   end
 
 end
