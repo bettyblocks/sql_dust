@@ -47,7 +47,7 @@ defmodule SqlDust.Mixfile do
     ]
   end
 
-  defp elixirc_paths(:test), do: ~w(lib test/support)
+  defp elixirc_paths(:test), do: ~w(lib test/support test/ecto/sql_dust_test test/talk_test)
   defp elixirc_paths(_), do: ~w(lib)
 
   defp aliases do

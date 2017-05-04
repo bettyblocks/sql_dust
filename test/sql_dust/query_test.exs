@@ -459,10 +459,10 @@ defmodule SqlDust.QueryTest do
   describe "querying data" do
     test ".to_lists()" do
       assert [
-        [1, "Amsterdam"],
-        [2, "New York"],
-        [3, "Barcelona"],
-        [4, "London"]
+        [1, "Amsterdam", nil],
+        [2, "New York", nil],
+        [3, "Barcelona", nil],
+        [4, "London", nil]
       ] == "cities" |> to_lists(TestRepo)
 
       assert [
@@ -475,10 +475,10 @@ defmodule SqlDust.QueryTest do
 
     test ".to_maps()" do
       assert [
-        %{"id" => 1, "name" => "Amsterdam"},
-        %{"id" => 2, "name" => "New York"},
-        %{"id" => 3, "name" => "Barcelona"},
-        %{"id" => 4, "name" => "London"}
+        %{"id" => 1, "name" => "Amsterdam", "country_id" => nil},
+        %{"id" => 2, "name" => "New York", "country_id" => nil},
+        %{"id" => 3, "name" => "Barcelona", "country_id" => nil},
+        %{"id" => 4, "name" => "London", "country_id" => nil}
       ] == "cities" |> to_maps(TestRepo)
 
       assert [

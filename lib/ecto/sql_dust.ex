@@ -108,14 +108,19 @@ defmodule Ecto.SqlDust do
     }
   end
 
-  # ???
-  # defp derive_association(:has_and_belongs_to_many, reflection) do
-  #   %{
-  #     # bridge_table: ([Inflex.pluralize(resource), Inflex.pluralize(association)] |> Enum.sort |> Enum.join("_")),
-  #     # primary_key: "id",
-  #     # foreign_key: "#{Inflex.singularize(resource)}_id",
-  #     # association_primary_key: "id",
-  #     # association_foreign_key: "#{Inflex.singularize(association)}_id"
-  #   }
-  # end
+  defp derive_association(:has_and_belongs_to_many, reflection) do
+    owner = reflection.owner |> Module.split() |> Enum.at(-1) |> Inflex.underscore()
+    owner = "#{owner}_id"
+
+    related = reflection.related |> Module.split() |> Enum.at(-1) |> Inflex.underscore()
+    related = "#{related}_id"
+
+    %{
+      bridge_table: reflection.join_through,
+      primary_key: reflection.join_keys[String.to_atom(owner)] |> Atom.to_string(),
+      foreign_key: owner,
+      association_primary_key: reflection.join_keys[String.to_atom(related)] |> Atom.to_string(),
+      association_foreign_key: related
+    }
+  end
 end
