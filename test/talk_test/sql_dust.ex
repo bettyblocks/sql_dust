@@ -18,7 +18,7 @@ defmodule TalkTest.SqlDust do
 
   def example3(vote_count) do
     Post
-    |> select("title, GROUP_CONCAT(DISTINCT comments.commenter) AS commenters, SUM(comments.votes) AS votes")
+    |> select("title, GROUP_CONCAT(DISTINCT comments.commenter ORDER BY comments.commenter) AS commenters, SUM(comments.votes) AS votes")
     |> where(["votes >= ?", vote_count])
     |> group_by("id")
     |> to_maps(TestRepo)
@@ -26,7 +26,7 @@ defmodule TalkTest.SqlDust do
 
   def example4(criteria) do
     Post
-    |> select("title, GROUP_CONCAT(DISTINCT tags.name) AS tagged")
+    |> select("title, GROUP_CONCAT(DISTINCT tags.name ORDER BY tags.name) AS tagged")
     |> where(["tags.name LIKE ?", "%#{criteria}%"])
     |> group_by("id")
     |> to_maps(TestRepo)

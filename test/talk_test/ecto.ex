@@ -4,12 +4,6 @@ defmodule TalkTest.Ecto do
   alias TalkTest.{Post,Comment}
 
   def example1(title) do
-    # TestRepo.all(
-    #   from p in Post,
-    #     where: is_nil(p.published_at) and
-    #            fragment("lower(?)", p.title) == ^title
-    # )
-
     Post
     |> where([p], is_nil(p.published_at))
     |> where([p], fragment("LOWER(?)", p.title) == ^title)
@@ -18,10 +12,10 @@ defmodule TalkTest.Ecto do
 
   def example2(post_id) do
     Comment
-    |> select([c, _], c)
+    |> select([c], c)
     |> join(:left, [c], p in assoc(c, :post))
     |> where([_, p], p.id == ^post_id)
-    |> TestRepo.all
+    |> TestRepo.all()
   end
 
   def example3(vote_count) do
@@ -30,7 +24,7 @@ defmodule TalkTest.Ecto do
         join: comments in assoc(post, :comments),
         select: %{
           title: post.title,
-          commenters: fragment("GROUP_CONCAT(DISTINCT ?)", comments.commenter),
+          commenters: fragment("GROUP_CONCAT(DISTINCT ? ORDER BY ?)", comments.commenter, comments.commenter),
           votes: fragment("SUM(?) AS votes", comments.votes)
         },
         having: fragment("votes >= ?", ^vote_count),
@@ -51,7 +45,7 @@ defmodule TalkTest.Ecto do
         join: tags in assoc(post, :tags),
         select: %{
           title: post.title,
-          tagged: fragment("GROUP_CONCAT(DISTINCT ?)", tags.name)
+          tagged: fragment("GROUP_CONCAT(DISTINCT ? ORDER BY ?)", tags.name, tags.name)
         },
         where: fragment("? LIKE ?", tags.name, ^criteria),
         group_by: post.id
