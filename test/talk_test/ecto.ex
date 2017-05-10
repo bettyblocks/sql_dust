@@ -30,11 +30,8 @@ defmodule TalkTest.Ecto do
         having: fragment("votes >= ?", ^vote_count),
         group_by: post.id
     )
-    |> Enum.map(fn(map) ->
-      map
-      |> Enum.map(fn({k, v}) -> {Atom.to_string(k), v} end)
-      |> Enum.into(%{})
-    end)
+
+    |> to_maps()
   end
 
   def example4(criteria) do
@@ -50,7 +47,12 @@ defmodule TalkTest.Ecto do
         where: fragment("? LIKE ?", tags.name, ^criteria),
         group_by: post.id
     )
-    |> Enum.map(fn(map) ->
+
+    |> to_maps()
+  end
+
+  defp to_maps(data) do
+    Enum.map(data, fn(map) ->
       map
       |> Enum.map(fn({k, v}) -> {Atom.to_string(k), v} end)
       |> Enum.into(%{})
