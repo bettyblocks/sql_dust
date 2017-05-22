@@ -75,6 +75,10 @@ defmodule SqlDust.ScanUtils do
     Regex.scan(~r/ AS .+$/i, sql)
   end
 
+  def scan_dust_paths(sql) do
+    Regex.scan(~r/\[[a-z0-9_\.]+\]/i, sql)
+  end
+
   def scan_reserved_words(sql) do
     Regex.scan(~r/\b(distinct|and|or|is|like|rlike|regexp|in|between|not|null|sounds|soundex|asc|desc|true|false)\b/i, sql)
   end
