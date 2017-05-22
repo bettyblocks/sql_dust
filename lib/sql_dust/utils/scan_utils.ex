@@ -11,7 +11,7 @@ defmodule SqlDust.ScanUtils do
   end
 
   def split_arguments(sql) do
-    excluded = scan_quoted(sql)
+    excluded = scan_strings(sql)
 
     {sql, excluded} = numerize_patterns(sql, excluded)
       |> numerize_parenthesized(excluded)
@@ -50,11 +50,11 @@ defmodule SqlDust.ScanUtils do
     end
   end
 
-  def scan_quoted(sql) do
+  def scan_strings(sql) do
     Regex.scan(~r/(["'])(?:(?=(\\?))\2.)*?\1/, sql)
       |> Enum.reduce([], fn
-        ([""|_], quoted) -> quoted
-        ([match|_], quoted) -> [match | quoted]
+        ([""|_], strings) -> strings
+        ([match|_], strings) -> [match | strings]
       end)
       |> Enum.reverse()
   end
@@ -120,7 +120,7 @@ defmodule SqlDust.ScanUtils do
   end
 
   def interpolate_variables(sql, variables, initial_variables) do
-    excluded = scan_quoted(sql)
+    excluded = scan_strings(sql)
     sql = numerize_patterns(sql, excluded)
 
 
