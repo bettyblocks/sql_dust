@@ -418,9 +418,6 @@ defmodule SqlDust.QueryTest do
   end
 
   test "escapes fields with same name as function" do
-    # Data.sqlify: not-querified: '%SqlDust{adapter: nil, from: "Todo", group_by: nil, join_on: nil, limit: 60, offset: nil, order_by: ["id ASC"], schema: %{Role: %{:table_name => "roles", "users" => %{association_foreign_key: "user_id", association_primary_key : "id", bridge_table: "roles_users", cardinality: :has_and_belongs_to_many, foreign_key: "role_id", primary_key: "id", resource: "User"}}, Todo: %{table_name: "todos"}, User: %{:table_name => "users", "locale" => %{cardinality: :belongs_to, foreign_key: " locale_id", table_name: "user_locale_list"}, "roles" => %{association_foreign_key: "role_id", association_primary_key: "id", bridge_table: "roles_users", cardinality: :has_and_belongs_to_many, foreign_key: "user_id", primary_key: "id", resource: "Role"}}} , select: ["content AS content", "pdf_report AS pdf_report.pdf_report", "pdf_report_source AS pdf_report.pdf_report_source", "title AS title", "regexp AS regexp", "id"], unique: true, variables: %{scope: "NULL", scope_value: "NULL"}, where: nil}'
-
-
     {sql, _} = select("[regexp] as regexp")
                |> select("[id]")
                |> select("[key.in.value]")
