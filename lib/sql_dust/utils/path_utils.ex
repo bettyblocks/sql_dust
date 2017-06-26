@@ -4,10 +4,10 @@ defmodule SqlDust.PathUtils do
 
   def prepend_path_aliases([], options), do: {[], options}
   def prepend_path_aliases([sql_line | sql_lines], options) do
-    {prepedend_sql_line, prepended_options} = prepend_path_aliases(sql_line, options)
-    {prepedend_sql_lines, acc_prepended_options} = prepend_path_aliases(sql_lines, prepended_options)
+    {prepended_sql_line, prepended_options} = prepend_path_aliases(sql_line, options)
+    {prepended_sql_lines, acc_prepended_options} = prepend_path_aliases(sql_lines, prepended_options)
 
-    {[prepedend_sql_line | prepedend_sql_lines], acc_prepended_options}
+    {[prepended_sql_line | prepended_sql_lines], acc_prepended_options}
   end
   def prepend_path_aliases(sql, options) when sql == "*", do: {sql, options}
   def prepend_path_aliases(sql, options) when is_binary(sql) do
