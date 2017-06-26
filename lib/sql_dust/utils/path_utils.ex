@@ -2,39 +2,46 @@ defmodule SqlDust.PathUtils do
   @moduledoc false
   import SqlDust.ScanUtils
 
-  def prepend_path_aliases(sql, options) when sql == "*" do
-    {sql, options}
+  def prepend_path_aliases([], options), do: {[], options}
+  def prepend_path_aliases([sql_line | sql_lines], options) do
+    {prepended_sql_line, prepended_options} = prepend_path_aliases(sql_line, options)
+    {prepended_sql_lines, acc_prepended_options} = prepend_path_aliases(sql_lines, prepended_options)
+
+    {[prepended_sql_line | prepended_sql_lines], acc_prepended_options}
   end
-
-  def prepend_path_aliases(sql, options) when is_list(sql) do
-    {aliases, excluded} =
-      sql
-      |> Enum.reduce({[], []}, fn(sql, {aliases_list, excluded_list}) ->
-        {sql, aliases, excluded} = scan_and_format_aliases(sql, options)
-        {[aliases | aliases_list], [{sql, excluded} | excluded_list]}
-      end)
-    options = %{options | aliases: aliases |> List.flatten |> Enum.uniq}
-    {sql, options} = excluded |> Enum.reverse() |> Enum.reduce({[], options}, fn({sql, excluded}, {list, options}) ->
-
-        sql = numerize_patterns(sql, excluded)
-        {sql, options} = scan_and_prepend_path_aliases(sql, options)
-
-        sql = interpolate_patterns(sql, excluded)
-        {[sql | list], options}
-     end)
-    {Enum.reverse(sql) , options}
-  end
-
-  def prepend_path_aliases(sql, options) do
+  def prepend_path_aliases(sql, options) when sql == "*", do: {sql, options}
+  def prepend_path_aliases(sql, options) when is_binary(sql) do
     {sql, aliases, excluded} = scan_and_format_aliases(sql, options)
-
+    {sql, dust_paths} = scan_and_replace_dust_paths(sql)
     options = Map.put(options, :aliases, aliases)
-
-    sql = numerize_patterns(sql, excluded)
-    {sql, options} = scan_and_prepend_path_aliases(sql, options)
+    {sql, options} =
+      sql
+      |> numerize_patterns(excluded)
+      |> restore_dust_paths(dust_paths)
+      |> scan_and_prepend_path_aliases(options)
 
     sql = interpolate_patterns(sql, excluded)
     {sql, options}
+  end
+
+  defp scan_and_replace_dust_paths(sql) do
+    path_regex = ~r/\[([\w\d\._]+)\]/i
+    dust_paths = Regex.scan(path_regex, sql) |> Enum.map( &List.first(&1) )
+    {sql, _} = Enum.reduce(dust_paths, {sql, 0}, fn(path, {sql, index}) ->
+                 index_str = "[#{index}]"
+                 {String.replace(sql, path, index_str), index + 1}
+               end)
+
+    {sql, dust_paths}
+  end
+  defp restore_dust_paths(sql, []), do: sql
+  defp restore_dust_paths(sql, dust_paths) do
+    (0..length(dust_paths) - 1)
+    |> Enum.reduce(sql, fn(index, sql) ->
+         search_string = "[#{index}]"
+         replace_string = Enum.at(dust_paths, index) |> String.slice(1..-2)
+         String.replace(sql, search_string, replace_string)
+       end)
   end
 
   defp scan_and_format_aliases(sql, options) when is_binary(sql) do
@@ -53,18 +60,20 @@ defmodule SqlDust.PathUtils do
 
   defp format_excluded_aliases(excluded, aliases, options) do
     excluded
-      |> Enum.map(fn
-        (excluded) ->
-        if match_excluded_alias(excluded) do
-          {_, compiled} = Regex.compile(excluded)
-          [compiled, " AS " <> quote_alias(fix_sql_alias(excluded), options)]
-        else
-          excluded
-        end
-      end)
-      |> Enum.concat(Enum.map(aliases, fn(sql_alias) ->
-        [~r/([^\.\w])#{sql_alias}([^\.\w])/, quote_alias(sql_alias, options)]
-      end))
+    |> Enum.map(fn(excluded) ->
+         if match_excluded_alias(excluded) do
+           {_, compiled} = Regex.compile(excluded)
+
+           [compiled, " AS " <> quote_alias(fix_sql_alias(excluded), options)]
+         else
+           excluded
+         end
+       end)
+    |> Enum.concat(
+         Enum.map(aliases, fn(sql_alias) ->
+           [~r/([^\.\w])#{sql_alias}([^\.\w])/, quote_alias(sql_alias, options)]
+         end)
+       )
   end
 
   defp fix_sql_alias(" AS " <> sql_alias), do: sql_alias
@@ -77,7 +86,6 @@ defmodule SqlDust.PathUtils do
   defp match_excluded_alias(" as " <> _), do: true
   defp match_excluded_alias(_sql_alias), do: false
 
-
   def sanitize_sql(sql) do
     {excluded, _} = scan_excluded(sql)
     Enum.reduce(excluded, sql, fn(pattern, sql) ->
@@ -87,7 +95,7 @@ defmodule SqlDust.PathUtils do
 
   def scan_excluded(sql) do
     excluded = []
-      |> Enum.concat(scan_quoted(sql))
+      |> Enum.concat(scan_strings(sql))
       |> Enum.concat(scan_variables(sql))
       |> Enum.concat(scan_functions(sql))
       |> Enum.concat(aliases = (sql |> scan_aliases() |> List.flatten |> Enum.uniq))
@@ -99,10 +107,9 @@ defmodule SqlDust.PathUtils do
   end
 
   defp scan_and_prepend_path_aliases(sql, options) do
-    regex = ~r/(?:\.\*|\w+[a-zA-Z]+\w*(?:\.(?:\*|\w{2,}))*)/
-    parts = regex
+    ~r/(?:\.\*|\w+[a-zA-Z]+\w*(?:\.(?:\*|\w{2,}))*)/
     |> Regex.split(sql, [include_captures: true])
-    analyze_aliases(parts, [], options, false)
+    |> analyze_aliases([], options, false)
   end
 
   defp analyze_aliases([h], out, options, false) do

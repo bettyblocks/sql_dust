@@ -417,6 +417,30 @@ defmodule SqlDust.QueryTest do
       """
   end
 
+  test "escapes fields with same name as function" do
+    {sql, _} = select("[regexp] as regexp")
+               |> select("[id]")
+               |> select("[key.in.value]")
+               |> select("'a' REGEXP '^[a-d]'")
+               |> select("'Ewout!' REGEXP '.*' as test2")
+               |> from("users")
+               |> where("[like] = 'ewout'")
+               |> to_sql
+
+    assert sql == """
+      SELECT
+        `u`.`regexp` AS `regexp`,
+        `u`.`id`,
+        `key.in`.`value`,
+        'a' REGEXP '^[a-d]',
+        'Ewout!' REGEXP '.*' AS `test2`
+      FROM `users` `u`
+      LEFT JOIN `keys` `key` ON `key`.`id` = `u`.`key_id`
+      LEFT JOIN `ins` `key.in` ON `key.in`.`id` = `key`.`in_id`
+      WHERE (`u`.`like` = 'ewout')
+      """
+  end
+
   test "generating SQL using composed query dust" do
     sql = select("id, name")
       |> select("company.name")

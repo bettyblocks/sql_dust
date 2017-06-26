@@ -11,12 +11,15 @@ defmodule SqlDust.ScanUtils do
   end
 
   def split_arguments(sql) do
-    excluded = scan_quoted(sql)
+    excluded = scan_strings(sql)
 
-    {sql, excluded} = numerize_patterns(sql, excluded)
+    {sql, excluded} =
+      sql
+      |> numerize_patterns(excluded)
       |> numerize_parenthesized(excluded)
 
-    {list, _} = sql
+    {list, _} =
+      sql
       |> String.split(~r/\s*,\s*/)
       |> Enum.reduce({[], excluded}, fn(sql, {list, excluded}) ->
         sql = interpolate_parenthesized(sql, excluded)
@@ -50,11 +53,11 @@ defmodule SqlDust.ScanUtils do
     end
   end
 
-  def scan_quoted(sql) do
+  def scan_strings(sql) do
     Regex.scan(~r/(["'])(?:(?=(\\?))\2.)*?\1/, sql)
       |> Enum.reduce([], fn
-        ([""|_], quoted) -> quoted
-        ([match|_], quoted) -> [match | quoted]
+        ([""|_], strings) -> strings
+        ([match|_], strings) -> [match | strings]
       end)
       |> Enum.reverse()
   end
@@ -75,8 +78,12 @@ defmodule SqlDust.ScanUtils do
     Regex.scan(~r/ AS .+$/i, sql)
   end
 
+  def scan_dust_paths(sql) do
+    Regex.scan(~r/\[[a-z0-9_\.]+\]/i, sql)
+  end
+
   def scan_reserved_words(sql) do
-    Regex.scan(~r/\b(distinct|and|or|is|like|rlike|regexp|in|between|not|null|sounds|soundex|asc|desc|true|false)\b/i, sql)
+    Regex.scan(~r/\b(distinct|key|and|or|is|like|rlike|regexp|in|between|not|null|sounds|soundex|asc|desc|true|false)\b/i, sql)
   end
 
   def numerize_patterns(sql, patterns) do
@@ -120,7 +127,7 @@ defmodule SqlDust.ScanUtils do
   end
 
   def interpolate_variables(sql, variables, initial_variables) do
-    excluded = scan_quoted(sql)
+    excluded = scan_strings(sql)
     sql = numerize_patterns(sql, excluded)
 
 
