@@ -39,12 +39,26 @@ defmodule SqlDust do
       |> compose_sql
   end
 
-  def resolve_placeholders(placeholders, options) do
-    Enum.map(placeholders, fn(path) ->
+  def resolve_placeholders(placeholders, options, values \\ []) do
+    placeholders
+    |> Enum.with_index()
+    |> Enum.map(fn({path, index}) ->
       case Regex.run(~r/option:(\w+)/, path) do
         nil ->
           String.split(path, ".") |> Enum.reduce(options.variables, fn(name, variables) ->
-            MapUtils.get(variables, name)
+            if is_map(variables) do
+              case MapUtils.get(variables, name) do
+                nil ->
+                  if Map.has_key?(variables, name) || Map.has_key?(variables, name |> String.to_atom()) do
+                    nil
+                  else
+                    Enum.at(values, index)
+                  end
+                value -> value
+              end
+            else
+              variables
+            end
           end)
         [_match, key] ->
           options[String.to_atom(key)]

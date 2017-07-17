@@ -622,7 +622,7 @@ defmodule SqlDustTest do
 
   test "resolving placeholders" do
     placeholders =
-      ~w(person.first_name person.last_name person.last_name option:limit option:offset)
+      ~w(person.first_name person.last_name person.last_name option:limit option:offset epic)
 
     options = %{
       variables: %{
@@ -637,7 +637,31 @@ defmodule SqlDustTest do
     }
 
     assert SqlDust.resolve_placeholders(placeholders, options) == [
-      "Paul", "Engel", "Engel", 10, 20
+      "Paul", "Engel", "Engel", 10, 20, nil
+    ]
+  end
+
+  test "resolving placeholders (with fallback to static values)" do
+    placeholders =
+      ~w(person.first_name person.last_name person.last_name awesome option:limit option:offset)
+
+    options = %{
+      variables: %{
+        person: %{
+          last_name: "Engel"
+        },
+        awesome: nil
+      },
+      limit: 10,
+      offset: 20
+    }
+
+    values = [
+      "Ken", "Engel", "Engel", true, 10, 20
+    ]
+
+    assert SqlDust.resolve_placeholders(placeholders, options, values) == [
+      "Ken", "Engel", "Engel", nil, 10, 20
     ]
   end
 
