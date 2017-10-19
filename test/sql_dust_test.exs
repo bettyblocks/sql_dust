@@ -115,6 +115,24 @@ defmodule SqlDustTest do
     }
   end
 
+  test "preserving list variables placeholders" do
+    options = %{
+      select: ["SUM(age)"],
+      where: "id IN (<<ids>>)",
+      variables: %{ids: [1, 2, 3, 4]}
+    }
+
+    assert SqlDust.from("users", options) == {
+      """
+      SELECT SUM(`u`.`age`)
+      FROM `users` `u`
+      WHERE (`u`.`id` IN (<<ids>>))
+      """,
+      [[1, 2, 3, 4]],
+      ~w(ids)
+    }
+  end
+
   test "using functions" do
     options = %{
       select: "COUNT(*)"

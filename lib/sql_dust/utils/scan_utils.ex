@@ -138,8 +138,10 @@ defmodule SqlDust.ScanUtils do
           MapUtils.get(variables, name)
         end)
 
-        anonymous_key = Regex.match?(~r(__\d+__), key)
-        sql = String.replace sql, match, "?", global: false
+        anonymous_key = Regex.match?(~r/__\d+__/, key)
+        replacement = if !anonymous_key && is_list(value), do: "<<" <> key <> ">>", else: "?"
+        sql = String.replace sql, match, replacement, global: false
+
         values = [value | values]
         key = if anonymous_key, do: nil, else: key
         keys = [key | keys]
