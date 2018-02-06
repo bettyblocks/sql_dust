@@ -17,6 +17,7 @@ defmodule SqlDust.SchemaUtils do
         options
           |> MapUtils.get(:schema, %{})
           |> MapUtils.get(resource, %{})
+          |> MapUtils.get(:associations, %{})
           |> MapUtils.get(path_segment, %{})
           |> MapUtils.get(:resource, Inflex.pluralize(path_segment))
       end)
@@ -29,10 +30,10 @@ defmodule SqlDust.SchemaUtils do
 
   def resource_schema(resource, association, options) do
     schema = MapUtils.get(options.schema, resource, %{})
-    cardinality = MapUtils.get(MapUtils.get(schema, association, %{}), :cardinality)
+    cardinality = MapUtils.get(schema, :associations, %{}) |> MapUtils.get(association, %{}) |> MapUtils.get(:cardinality)
 
     defacto_schema(resource)
-      |> Map.merge(defacto_association(resource, association, cardinality))
+      |> Map.merge(%{associations: defacto_association(resource, association, cardinality)})
       |> MapUtils.deep_merge(schema)
   end
 

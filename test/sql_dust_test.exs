@@ -186,8 +186,10 @@ defmodule SqlDustTest do
         table_name: "super department.store"
       },
       "users": %{
-        "department": %{
-          foreign_key: "insane weird.stuff"
+        associations: %{
+          "department": %{
+            foreign_key: "insane weird.stuff"
+          }
         }
       }
     }
@@ -202,6 +204,30 @@ defmodule SqlDustTest do
       FROM `users` `u`
       LEFT JOIN `user_roles` `user_role` ON `user_role`.`id` = `u`.`user_role_id`
       LEFT JOIN `super department.store` `department` ON `department`.`id` = `u`.`insane weird.stuff`
+      """, []}
+  end
+
+  test "conflicting resource meta data with its associations" do
+    options = %{
+      select: "name.id"
+    }
+
+    schema = %{
+      "users": %{
+        :associations => %{
+          "name" => %{
+            cardinality: :belongs_to,
+            foreign_key: "name_id",
+            table_name: "name_list"
+          }
+        }
+      }
+    }
+
+    assert SqlDust.from("users", options, schema) == {"""
+      SELECT `name`.`id`
+      FROM `users` `u`
+      LEFT JOIN `name_list` `name` ON `name`.`id` = `u`.`name_id`
       """, []}
   end
 
@@ -260,8 +286,10 @@ defmodule SqlDustTest do
     }
     schema = %{
       "users": %{
-        "skills": %{
-          cardinality: :has_and_belongs_to_many
+        associations: %{
+          "skills": %{
+            cardinality: :has_and_belongs_to_many
+          }
         }
       }
     }
@@ -285,9 +313,11 @@ defmodule SqlDustTest do
     }
     schema = %{
       "products": %{
-        current_price: %{
-          cardinality: :has_one,
-          resource: "prices"
+        associations: %{
+          current_price: %{
+            cardinality: :has_one,
+            resource: "prices"
+          }
         }
       }
     }
@@ -310,9 +340,11 @@ defmodule SqlDustTest do
     }
     schema = %{
       "products": %{
-        current_price: %{
-          cardinality: :has_one,
-          resource: "prices"
+        associations: %{
+          current_price: %{
+            cardinality: :has_one,
+            resource: "prices"
+          }
         }
       }
     }
@@ -333,10 +365,12 @@ defmodule SqlDustTest do
     }
     schema = %{
       "products": %{
-        current_price: %{
-          cardinality: :has_one,
-          resource: "prices",
-          join_on: "latest = 1"
+        associations: %{
+          current_price: %{
+            cardinality: :has_one,
+            resource: "prices",
+            join_on: "latest = 1"
+          }
         }
       }
     }
@@ -360,10 +394,12 @@ defmodule SqlDustTest do
     }
     schema = %{
       "products": %{
-        current_statistic: %{
-          cardinality: :has_one,
-          resource: "statistics",
-          join_on: "scope = <<scope>>"
+        associations: %{
+          current_statistic: %{
+            cardinality: :has_one,
+            resource: "statistics",
+            join_on: "scope = <<scope>>"
+          }
         }
       }
     }
@@ -388,8 +424,10 @@ defmodule SqlDustTest do
     }
     schema = %{
       "companies": %{
-        tags: %{
-          cardinality: :has_and_belongs_to_many
+        associations: %{
+          tags: %{
+            cardinality: :has_and_belongs_to_many
+          }
         }
       }
     }
@@ -482,7 +520,9 @@ defmodule SqlDustTest do
     }
     schema = %{
       "issues": %{
-        assignee: %{resource: "users"}
+        associations: %{
+          assignee: %{resource: "users"}
+        }
       }
     }
 
@@ -502,7 +542,9 @@ defmodule SqlDustTest do
     }
     schema = %{
       "issues": %{
-        assignee: %{table_name: "users"}
+        associations: %{
+          assignee: %{table_name: "users"}
+        }
       }
     }
 
@@ -522,10 +564,12 @@ defmodule SqlDustTest do
     }
     schema = %{
       "users": %{
-        "skills": %{
-          cardinality: :has_and_belongs_to_many,
-          bridge_table: "skill_set",
-          foreign_key: "person_id"
+        associations: %{
+          "skills": %{
+            cardinality: :has_and_belongs_to_many,
+            bridge_table: "skill_set",
+            foreign_key: "person_id"
+          }
         }
       }
     }
@@ -548,10 +592,12 @@ defmodule SqlDustTest do
     }
     schema = %{
       "users": %{
-        "skills": %{
-          cardinality: :has_and_belongs_to_many,
-          bridge_table: "test skill_set.awesome",
-          foreign_key: "strange.person_id"
+        associations: %{
+          "skills": %{
+            cardinality: :has_and_belongs_to_many,
+            bridge_table: "test skill_set.awesome",
+            foreign_key: "strange.person_id"
+          }
         }
       }
     }
@@ -789,8 +835,10 @@ defmodule SqlDustTest do
 
     schema = %{
       "organizations": %{
-        "addresses": %{
-          foreign_key: "sql dust.is.cool"
+        "associations" => %{
+          "addresses": %{
+            foreign_key: "sql dust.is.cool"
+          }
         }
       },
       "addresses": %{
@@ -817,8 +865,10 @@ defmodule SqlDustTest do
 
     schema = %{
       "users": %{
-        organization: %{
-          cardinality: :has_one
+        "associations": %{
+          organization: %{
+            cardinality: :has_one
+          }
         }
       }
     }
@@ -841,9 +891,11 @@ defmodule SqlDustTest do
 
     schema = %{
       "users": %{
-        organization: %{
-          cardinality: :has_one,
-          foreign_key: "user.organization column"
+        associations: %{
+          organization: %{
+            cardinality: :has_one,
+            foreign_key: "user.organization column"
+          }
         }
       },
       "organizations": %{
@@ -869,8 +921,10 @@ defmodule SqlDustTest do
 
     schema = %{
       "users": %{
-        skills: %{
-          cardinality: :has_and_belongs_to_many
+        associations: %{
+          skills: %{
+            cardinality: :has_and_belongs_to_many
+          }
         }
       }
     }
@@ -895,8 +949,10 @@ defmodule SqlDustTest do
     }
     schema = %{
       customers: %{
-        tags: %{
-          cardinality: :has_and_belongs_to_many
+        associations: %{
+          tags: %{
+            cardinality: :has_and_belongs_to_many
+          }
         }
       }
     }
@@ -929,8 +985,10 @@ defmodule SqlDustTest do
     }
     schema = %{
       "customers": %{
-        tags: %{
-          "cardinality": :has_and_belongs_to_many
+        associations: %{
+          tags: %{
+            "cardinality": :has_and_belongs_to_many
+          }
         }
       }
     }
@@ -952,8 +1010,10 @@ defmodule SqlDustTest do
     }
     schema = %{
       customers: %{
-        tags: %{
-          "cardinality": :has_and_belongs_to_many
+        associations: %{
+          tags: %{
+            "cardinality": :has_and_belongs_to_many
+          }
         }
       }
     }

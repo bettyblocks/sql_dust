@@ -1,4 +1,5 @@
 defmodule Ecto.SqlDust do
+  alias SqlDust.MapUtils
   use SqlDust.ComposeUtils
 
   def from(options, model) do
@@ -33,7 +34,7 @@ defmodule Ecto.SqlDust do
     schema = schema
       |> Map.put(source, Enum.reduce(associations, %{name: source, table_name: source}, fn(association, map) ->
         reflection = model.__schema__(:association, association)
-        Map.put(map, association, derive_association(reflection))
+        MapUtils.deep_merge(map, %{associations: %{association => derive_association(reflection)}})
       end))
 
     schema = associations

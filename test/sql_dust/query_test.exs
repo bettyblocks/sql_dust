@@ -455,7 +455,9 @@ defmodule SqlDust.QueryTest do
       |> schema(
         %{
           users: %{"table_name": "people"},
-          companies: %{"address": %{cardinality: :has_one}}
+          companies: %{
+            associations: %{"address": %{cardinality: :has_one}}
+          }
         }
       )
       |> unique

@@ -16,7 +16,8 @@ defmodule SqlDust.JoinUtils do
     schema1 = schema1
       |> Map.put(:path, path)
 
-    schema2 = MapUtils.get(schema1, association)
+    schema2 = MapUtils.get(schema1, :associations)
+      |> MapUtils.get(association)
       |> MapUtils.get(:resource, Inflex.pluralize(association))
       |> resource_schema(options)
       |> Map.put(:path, case path do
@@ -24,7 +25,7 @@ defmodule SqlDust.JoinUtils do
         _ -> "#{path}.#{association}"
       end)
 
-    association = MapUtils.get(schema1, association)
+    association = MapUtils.get(schema1, :associations) |> MapUtils.get(association)
 
     derive_schema_joins(association.cardinality, schema1, schema2, association, options)
   end
