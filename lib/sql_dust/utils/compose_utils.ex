@@ -13,6 +13,9 @@ defmodule SqlDust.ComposeUtils do
       def join_on(statements)          do join_on(options(), statements) end
       def join_on(options, statements) do append(options, :join_on, statements, false) end
 
+      def join_lateral(name, sub_dust) do join_lateral(options(), name, sub_dust) end
+      def join_lateral(options, name, sub_dust) do append(options, :join_lateral, {name, sub_dust}, false) end
+
       def where(statements)            do where(options(), statements) end
       def where(options, statements)   do append(options, :where, statements, false) end
 
@@ -65,9 +68,21 @@ defmodule SqlDust.ComposeUtils do
 
         from = options.from
         schema = options.schema
-        options = Map.take(options, [:select, :join_on, :where, :group_by, :order_by, :limit, :offset, :unique, :variables, :adapter])
+        options = Map.take(options, [:select, :join_on, :join_lateral, :where, :group_by, :order_by, :limit, :offset, :unique, :variables, :adapter])
                   |> Enum.reduce(%{from: options.from}, fn
                     ({_key,  nil}, map) -> map
+                    ({:join_lateral, joins}, map) ->
+                      Map.put(map, :join_lateral,
+                      Enum.map(joins, fn
+
+                        {name, %SqlDust{} = sub_dust} ->
+                          {name, to_sql(sub_dust) |> elem(0)}
+
+                        {name, sub_query} ->
+                          {name, sub_query}
+
+                        end
+                      ))
                     ({key, value}, map) -> Map.put(map, key, value)
                   end)
 

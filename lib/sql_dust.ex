@@ -5,7 +5,7 @@ defmodule SqlDust do
   import SqlDust.JoinUtils
   alias SqlDust.MapUtils
 
-  defstruct [:select, :from, :join_on, :where, :group_by, :order_by, :limit, :offset, :unique, :schema, :variables, :adapter]
+  defstruct [:select, :from, :join_on, :join_lateral, :where, :group_by, :order_by, :limit, :offset, :unique, :schema, :variables, :adapter]
 
   @moduledoc """
     SqlDust is a module that generates SQL queries as intuitively as possible.
@@ -74,6 +74,8 @@ defmodule SqlDust do
       |> Enum.uniq
       |> Enum.map(fn(path) -> derive_joins(path, options) end)
       |> List.flatten
+
+    joins = joins ++ derive_lateral_joins(options)
 
     Map.put options, :joins, joins
   end
