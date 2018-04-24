@@ -249,8 +249,10 @@ To have it clear:
 
 ### Lateral Joins
 
-Postgres 9.3 introduced lateral joins; a very convenient way to compare and filter your query based on other information in the database.
-[Read more here](https://www.postgresql.org/docs/9.4/static/queries-table-expressions.html)
+Postgres 9.3 introduced lateral joins; a very convenient way to compare and filter your query based on other information in the database.  
+A lateral subquery gets executed once and it's result is available for the outer query to compare to.  
+
+[Read more here](https://www.postgresql.org/docs/9.4/static/queries-table-expressions.html)  
 
 ```elixir
 sub_query = 
