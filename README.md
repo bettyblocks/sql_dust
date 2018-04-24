@@ -247,6 +247,37 @@ To have it clear:
 * SqlDust will return a tuple of **two** elements when NOT having passed variables
 * SqlDust will return a tuple of **three** elements when having passed variables
 
+### Lateral Joins
+
+Postgres 9.3 introduced lateral joins; a very convenient way to compare and filter your query based on other information in the database.
+[Read more here](https://www.postgresql.org/docs/9.4/static/queries-table-expressions.html)
+
+```elixir
+sub_query = 
+City
+  |> select("date_started")
+  |> where("id = 5")
+
+City
+  |> select("id, name")
+  |> join_lateral("first_city", sub_query)
+  |> where("date_started > a0.date_started")
+  |> to_sql
+  |> elem(0)
+  |> IO.puts
+
+"""
+SELECT `c`.`id`, `c`.`name`, `c`.`date_started`,
+FROM `cities` `c`
+LEFT JOIN LATERAL ( 
+  SELECT `c`.`date_started`
+  FROM `cities` `c`
+  WHERE (`c`.`id` = 1)
+) AS first_city ON TRUE 
+WHERE (`c`.`date_started` > first_city."date_started")
+"""
+```
+
 ## Testing
 
 Run the following command for testing:
