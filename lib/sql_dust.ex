@@ -100,7 +100,7 @@ defmodule SqlDust do
 
     {having, where} =
       where
-      |> Enum.partition(fn([sql | _]) ->
+      |> Enum.split_with(fn([sql | _]) ->
         sql = sanitize_sql(sql)
         Enum.any?(options.aliases, fn(sql_alias) ->
           String.match?(sql, ~r/(^|[^\.\w])#{sql_alias}([^\.\w]|$)/)

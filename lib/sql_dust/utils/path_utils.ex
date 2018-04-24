@@ -55,7 +55,27 @@ defmodule SqlDust.PathUtils do
 
     excluded = format_excluded_aliases(excluded, aliases, options)
 
-    {sql, aliases, excluded}
+    {sql, aliases, excluded ++ scan_and_format_lateral_fields(sql, options)}
+  end
+
+  defp scan_and_format_lateral_fields(sql, %{join_lateral: laterals}) when is_binary(sql) do
+    laterals
+    |> Enum.reduce([], fn {lateral_alias, _subquery}, acc ->
+      acc ++
+      (
+        "\\b#{lateral_alias}\\.(\\w+)"
+        |> Regex.compile()
+        |> elem(1)
+        |> Regex.scan(sql)
+        |> Enum.map(fn [full_path, field] ->
+          [Regex.compile(full_path) |> elem(1), "#{lateral_alias}.\"#{field}\""]
+        end)
+      )
+    end)
+  end
+
+  defp scan_and_format_lateral_fields(_, _) do
+    []
   end
 
   defp format_excluded_aliases(excluded, aliases, options) do
@@ -149,7 +169,6 @@ defmodule SqlDust.PathUtils do
   end
 
   defp do_dissect_path(path, options) do
-
     quotation_symbol = quotation_mark(options)
     split_on_dot_outside_quotation_mark = ~r/\.(?=(?:[^#{quotation_symbol}]*#{quotation_symbol}[^#{quotation_symbol}]*#{quotation_symbol})*[^#{quotation_symbol}]*$)/
     segments = String.split(path, split_on_dot_outside_quotation_mark)
