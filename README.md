@@ -261,7 +261,7 @@ City
 City
   |> select("id, name")
   |> join_lateral("first_city", sub_query)
-  |> where("date_started > a0.date_started")
+  |> where("date_started > first_city.date_started")
   |> to_sql
   |> elem(0)
   |> IO.puts
