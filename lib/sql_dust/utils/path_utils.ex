@@ -107,7 +107,7 @@ defmodule SqlDust.PathUtils do
   end
 
   defp scan_and_prepend_path_aliases(sql, options) do
-    ~r/(?:\.\*|\w+[a-zA-Z]+\w*(?:\.(?:\*|\w{2,}))*)/
+    ~r/(?:\.\*|\w*[a-zA-Z_\$]\w*(?:\.(?:\*|\w{2,}))*)/
     |> Regex.split(sql, [include_captures: true])
     |> analyze_aliases([], options, false)
   end
