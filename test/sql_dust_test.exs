@@ -45,6 +45,34 @@ defmodule SqlDustTest do
       """, []}
   end
 
+  test "selecting weirdly named columns of the base resource (passing a list)" do
+    options = %{
+      select: ["id", "first_name", "m2", "a"]
+    }
+
+    assert SqlDust.from("users", options) == {
+      "SELECT `u`.`id`, `u`.`first_name`, `u`.`m2`, `u`.`a`\nFROM `users` `u`\n",
+      []}
+  end
+
+  test "selecting weirdly named columns of the base resource (passing a map)" do
+    options = %{
+      select: ["id", "name", "m2", "a"],
+      where: [
+        ["name LIKE ? OR name LIKE ?", "%Paul%", "%Engel%"]
+      ]
+    }
+
+    assert SqlDust.from("users", options) == {
+      """
+      SELECT `u`.`id`, `u`.`name`, `u`.`m2`, `u`.`a`
+      FROM `users` `u`
+      WHERE (`u`.`name` LIKE ? OR `u`.`name` LIKE ?)
+      """,
+      ["%Paul%", "%Engel%"]
+    }
+  end
+
   test "interpolating variables" do
     options = %{
       select: ["id", "CONCAT(name, <<postfix>>)"],
