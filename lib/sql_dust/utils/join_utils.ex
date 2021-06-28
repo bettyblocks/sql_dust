@@ -120,6 +120,17 @@ defmodule SqlDust.JoinUtils do
       end)
   end
 
+  def derive_lateral_joins(%{join_lateral: joins}) when not is_nil(joins) do
+    joins
+      |> Enum.map(fn({name, sub_query}) ->
+        {:has_one, ["LEFT JOIN LATERAL (", sub_query, ") AS", name, "ON TRUE"] |> Enum.join(" ")}
+      end)
+  end
+
+  def derive_lateral_joins(_) do
+    []
+  end
+
   defp additional_join_conditions(path, %{join_on: join_on} = options) when is_bitstring(join_on) do
     additional_join_conditions(path, %{options | join_on: [join_on]})
   end
