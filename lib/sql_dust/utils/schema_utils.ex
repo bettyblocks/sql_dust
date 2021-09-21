@@ -3,24 +3,24 @@ defmodule SqlDust.SchemaUtils do
 
   def derive_schema(path, association, options) when is_bitstring(path) do
     String.split(path, ".")
-      |> Enum.reduce([], fn
-        ("", segments) -> segments
-        (segment, segments) -> [segment | segments]
-      end)
-      |> Enum.reverse()
-      |> derive_schema(association, options)
+    |> Enum.reduce([], fn
+      "", segments -> segments
+      segment, segments -> [segment | segments]
+    end)
+    |> Enum.reverse()
+    |> derive_schema(association, options)
   end
 
   def derive_schema(path, association, options) do
     path
-      |> Enum.reduce(options.resource.name, fn(path_segment, resource) ->
-        options
-          |> MapUtils.get(:schema, %{})
-          |> MapUtils.get(resource, %{})
-          |> MapUtils.get(path_segment, %{})
-          |> MapUtils.get(:resource, Inflex.pluralize(path_segment))
-      end)
-      |> resource_schema(association, options)
+    |> Enum.reduce(options.resource.name, fn path_segment, resource ->
+      options
+      |> MapUtils.get(:schema, %{})
+      |> MapUtils.get(resource, %{})
+      |> MapUtils.get(path_segment, %{})
+      |> MapUtils.get(:resource, Inflex.pluralize(path_segment))
+    end)
+    |> resource_schema(association, options)
   end
 
   def resource_schema(resource, options) do
@@ -32,8 +32,8 @@ defmodule SqlDust.SchemaUtils do
     cardinality = MapUtils.get(MapUtils.get(schema, association, %{}), :cardinality)
 
     defacto_schema(resource)
-      |> Map.merge(defacto_association(resource, association, cardinality))
-      |> MapUtils.deep_merge(schema)
+    |> Map.merge(defacto_association(resource, association, cardinality))
+    |> MapUtils.deep_merge(schema)
   end
 
   defp defacto_schema(resource) do
@@ -48,31 +48,42 @@ defmodule SqlDust.SchemaUtils do
   defp defacto_association(resource, association, cardinality) do
     cardinality = cardinality || derive_cardinality(association)
 
-    map = case cardinality do
-      :belongs_to -> %{
-        primary_key: "id",
-        foreign_key: "#{association}_id"
-      }
-      :has_one -> %{
-        primary_key: "id",
-        foreign_key: "#{Inflex.singularize(resource)}_id"
-      }
-      :has_many -> %{
-        primary_key: "id",
-        foreign_key: "#{Inflex.singularize(resource)}_id"
-      }
-      :has_and_belongs_to_many -> %{
-        bridge_table: ([Inflex.pluralize(resource), Inflex.pluralize(association)] |> Enum.sort |> Enum.join("_")),
-        primary_key: "id",
-        foreign_key: "#{Inflex.singularize(resource)}_id",
-        association_primary_key: "id",
-        association_foreign_key: "#{Inflex.singularize(association)}_id"
-      }
-    end
+    map =
+      case cardinality do
+        :belongs_to ->
+          %{
+            primary_key: "id",
+            foreign_key: "#{association}_id"
+          }
+
+        :has_one ->
+          %{
+            primary_key: "id",
+            foreign_key: "#{Inflex.singularize(resource)}_id"
+          }
+
+        :has_many ->
+          %{
+            primary_key: "id",
+            foreign_key: "#{Inflex.singularize(resource)}_id"
+          }
+
+        :has_and_belongs_to_many ->
+          %{
+            bridge_table:
+              [Inflex.pluralize(resource), Inflex.pluralize(association)]
+              |> Enum.sort()
+              |> Enum.join("_"),
+            primary_key: "id",
+            foreign_key: "#{Inflex.singularize(resource)}_id",
+            association_primary_key: "id",
+            association_foreign_key: "#{Inflex.singularize(association)}_id"
+          }
+      end
       |> Map.put(:cardinality, cardinality)
 
     %{}
-      |> Map.put(association, map)
+    |> Map.put(association, map)
   end
 
   defp derive_cardinality(association) do

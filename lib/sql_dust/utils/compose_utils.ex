@@ -3,50 +3,133 @@ defmodule SqlDust.ComposeUtils do
 
   defmacro __using__(_) do
     quote do
-      def select(args)                 do select(options(), args) end
-      def select(options, args)        do append(options, :select, args) end
+      def select(args) do
+        select(options(), args)
+      end
 
-      def from(resource)               do from(options(), resource) end
-      def from(options, resource)      do __from__(options, resource) end
-      defp __from__(options, resource) do put(options, :from, resource) end
+      def select(options, args) do
+        append(options, :select, args)
+      end
 
-      def join_on(statements)          do join_on(options(), statements) end
-      def join_on(options, statements) do append(options, :join_on, statements, false) end
+      def from(resource) do
+        from(options(), resource)
+      end
 
-      def where(statements)            do where(options(), statements) end
-      def where(options, statements)   do append(options, :where, statements, false) end
+      def from(options, resource) do
+        __from__(options, resource)
+      end
 
-      def group_by(args)               do group_by(options(), args) end
-      def group_by(options, args)      do append(options, :group_by, args) end
+      defp __from__(options, resource) do
+        put(options, :from, resource)
+      end
 
-      def order_by(args)               do order_by(options(), args) end
-      def order_by(options, args)      do append(options, :order_by, args) end
+      def join_on(statements) do
+        join_on(options(), statements)
+      end
 
-      def limit                        do limit("?") end
-      def limit(%{} = options)         do limit(options, "?") end
-      def limit(arg)                   do limit(options(), arg) end
-      def limit(options, arg)          do put(options, :limit, arg) end
+      def join_on(options, statements) do
+        append(options, :join_on, statements, false)
+      end
 
-      def offset                       do offset("?") end
-      def offset(%{} = options)        do offset(options, "?") end
-      def offset(arg)                  do offset(options(), arg) end
-      def offset(options, arg)         do put(options, :offset, arg) end
+      def where(statements) do
+        where(options(), statements)
+      end
 
-      def unique                       do unique(true) end
-      def unique(%{} = options)        do unique(options, true) end
-      def unique(bool)                 do unique(options(), bool) end
-      def unique(options, bool)        do put(options, :unique, bool) end
+      def where(options, statements) do
+        append(options, :where, statements, false)
+      end
 
-      def variables(map)               do variables(options(), map) end
-      def variables(options, map)      do merge(options, :variables, map) end
+      def group_by(args) do
+        group_by(options(), args)
+      end
 
-      def adapter(name)                do adapter(options(), name) end
-      def adapter(options, name)       do put(options, :adapter, name) end
+      def group_by(options, args) do
+        append(options, :group_by, args)
+      end
 
-      def schema(map)                  do schema(options(), map) end
-      def schema(options, map)         do merge(options, :schema, map) end
+      def order_by(args) do
+        order_by(options(), args)
+      end
 
-      defp parse(options)              do __parse__(options) end
+      def order_by(options, args) do
+        append(options, :order_by, args)
+      end
+
+      def limit do
+        limit("?")
+      end
+
+      def limit(%{} = options) do
+        limit(options, "?")
+      end
+
+      def limit(arg) do
+        limit(options(), arg)
+      end
+
+      def limit(options, arg) do
+        put(options, :limit, arg)
+      end
+
+      def offset do
+        offset("?")
+      end
+
+      def offset(%{} = options) do
+        offset(options, "?")
+      end
+
+      def offset(arg) do
+        offset(options(), arg)
+      end
+
+      def offset(options, arg) do
+        put(options, :offset, arg)
+      end
+
+      def unique do
+        unique(true)
+      end
+
+      def unique(%{} = options) do
+        unique(options, true)
+      end
+
+      def unique(bool) do
+        unique(options(), bool)
+      end
+
+      def unique(options, bool) do
+        put(options, :unique, bool)
+      end
+
+      def variables(map) do
+        variables(options(), map)
+      end
+
+      def variables(options, map) do
+        merge(options, :variables, map)
+      end
+
+      def adapter(name) do
+        adapter(options(), name)
+      end
+
+      def adapter(options, name) do
+        put(options, :adapter, name)
+      end
+
+      def schema(map) do
+        schema(options(), map)
+      end
+
+      def schema(options, map) do
+        merge(options, :schema, map)
+      end
+
+      defp parse(options) do
+        __parse__(options)
+      end
 
       defp __parse__(options) do
         if is_bitstring(options) do
@@ -59,17 +142,30 @@ defmodule SqlDust.ComposeUtils do
       def to_sql(options) do
         options = parse(options)
 
-        if (is_nil(options.from)) do;
+        if is_nil(options.from) do
           raise "missing :from option in query dust"
         end
 
         from = options.from
         schema = options.schema
-        options = Map.take(options, [:select, :join_on, :where, :group_by, :order_by, :limit, :offset, :unique, :variables, :adapter])
-                  |> Enum.reduce(%{from: options.from}, fn
-                    ({_key,  nil}, map) -> map
-                    ({key, value}, map) -> Map.put(map, key, value)
-                  end)
+
+        options =
+          Map.take(options, [
+            :select,
+            :join_on,
+            :where,
+            :group_by,
+            :order_by,
+            :limit,
+            :offset,
+            :unique,
+            :variables,
+            :adapter
+          ])
+          |> Enum.reduce(%{from: options.from}, fn
+            {_key, nil}, map -> map
+            {key, value}, map -> Map.put(map, key, value)
+          end)
 
         SqlDust.from(from, options, schema || %{})
       end
@@ -93,18 +189,20 @@ defmodule SqlDust.ComposeUtils do
             list |> List.insert_at(-1, value)
           end
 
-        Map.put options, key, list
+        Map.put(options, key, list)
       end
 
       defp merge(options, key, value) do
         options = parse(options)
-        value = (Map.get(options, key) || %{})
+
+        value =
+          (Map.get(options, key) || %{})
           |> MapUtils.deep_merge(value)
 
-        Map.put options, key, value
+        Map.put(options, key, value)
       end
 
-      defoverridable [from: 2, parse: 1]
+      defoverridable from: 2, parse: 1
     end
   end
 end

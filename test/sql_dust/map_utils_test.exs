@@ -91,10 +91,10 @@ defmodule SqlDust.MapUtilsTest do
   end
 
   test "it merges string keys in nested maps" do
-    map1 = %{a: "3", b: %{"c" => %{d: %{ "e" => 9001 }}}}
-    map2 = %{a: "3", b: %{c: %{"d" => %{ "e" => 9001 }}}}
+    map1 = %{a: "3", b: %{"c" => %{d: %{"e" => 9001}}}}
+    map2 = %{a: "3", b: %{c: %{"d" => %{"e" => 9001}}}}
     map3 = MapUtils.deep_merge(map1, map2)
 
-    assert map3 == %{a: "3", b: %{c: %{d: %{ e: 9001 }}}}
+    assert map3 == %{a: "3", b: %{c: %{d: %{e: 9001}}}}
   end
 end
