@@ -2,18 +2,20 @@ defmodule SqlDust.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :sql_dust,
-     version: "0.4.0",
-     elixir: "~> 1.4",
-     build_embedded: Mix.env == :prod,
-     start_permanent: Mix.env == :prod,
-     description: description(),
-     package: package(),
-     deps: deps()]
+    [
+      app: :sql_dust,
+      version: "0.4.0",
+      elixir: "~> 1.4",
+      build_embedded: Mix.env() == :prod,
+      start_permanent: Mix.env() == :prod,
+      description: description(),
+      package: package(),
+      deps: deps()
+    ]
   end
 
   def application do
-    [applications: [:logger]]
+    [applications: [:logger, :inflex]]
   end
 
   defp deps do
@@ -23,7 +25,7 @@ defmodule SqlDust.Mixfile do
       {:exprof, "~> 0.2", only: :dev},
       {:benchfella, "~> 0.3", only: :dev},
       {:ex_doc, "~> 0.25", only: :dev},
-      {:credo, "~> 1.5", only: [:dev, :test]},
+      {:credo, "~> 1.5", only: [:dev, :test]}
     ]
   end
 

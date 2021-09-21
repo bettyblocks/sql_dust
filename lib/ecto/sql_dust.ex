@@ -6,9 +6,9 @@ defmodule Ecto.SqlDust do
     derived_schema = derive_schema(model)
 
     options
-      |> __from__(resource)
-      |> adapter(:postgres)
-      |> schema(derived_schema)
+    |> __from__(resource)
+    |> adapter(:postgres)
+    |> schema(derived_schema)
   end
 
   defp parse(options) do
@@ -30,20 +30,26 @@ defmodule Ecto.SqlDust do
     source = model.__schema__(:source)
     associations = model.__schema__(:associations)
 
-    schema = schema
-      |> Map.put(source, Enum.reduce(associations, %{name: source, table_name: source}, fn(association, map) ->
-        reflection = model.__schema__(:association, association)
-        Map.put(map, association, derive_association(reflection))
-      end))
+    schema =
+      schema
+      |> Map.put(
+        source,
+        Enum.reduce(associations, %{name: source, table_name: source}, fn association, map ->
+          reflection = model.__schema__(:association, association)
+          Map.put(map, association, derive_association(reflection))
+        end)
+      )
 
-    schema = associations
-      |> Enum.map(fn(association) ->
+    schema =
+      associations
+      |> Enum.map(fn association ->
         model.__schema__(:association, association).queryable
       end)
-      |> Enum.uniq
-      |> Enum.reduce(schema, fn(model, schema) ->
+      |> Enum.uniq()
+      |> Enum.reduce(schema, fn model, schema ->
         model_source = model.__schema__(:source)
-        if (source == model_source) || Map.has_key?(schema, model_source) do
+
+        if source == model_source || Map.has_key?(schema, model_source) do
           schema
         else
           derive_schema(schema, model)
@@ -54,20 +60,28 @@ defmodule Ecto.SqlDust do
   end
 
   defp derive_association(reflection) do
-    cardinality = case reflection.__struct__ do
-      Ecto.Association.BelongsTo -> :belongs_to
-      Ecto.Association.Has ->
-        case reflection.cardinality do
-          :one -> :has_one
-          :many -> :has_many
-        end
-      Ecto.Association.ManyToMany -> :has_and_belongs_to_many
-    end
+    cardinality =
+      case reflection.__struct__ do
+        Ecto.Association.BelongsTo ->
+          :belongs_to
 
-    Map.merge(%{
-      cardinality: cardinality,
-      resource: reflection.related.__schema__(:source)
-    }, derive_association(cardinality, reflection))
+        Ecto.Association.Has ->
+          case reflection.cardinality do
+            :one -> :has_one
+            :many -> :has_many
+          end
+
+        Ecto.Association.ManyToMany ->
+          :has_and_belongs_to_many
+      end
+
+    Map.merge(
+      %{
+        cardinality: cardinality,
+        resource: reflection.related.__schema__(:source)
+      },
+      derive_association(cardinality, reflection)
+    )
   end
 
   defp derive_association(:belongs_to, reflection) do

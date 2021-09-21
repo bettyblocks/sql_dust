@@ -5,9 +5,9 @@ defmodule SqlDust.ScanUtils do
 
   def split_arguments(sql) when is_list(sql) do
     sql
-      |> List.flatten
-      |> Enum.join(", ")
-      |> split_arguments
+    |> List.flatten()
+    |> Enum.join(", ")
+    |> split_arguments
   end
 
   def split_arguments(sql) do
@@ -21,7 +21,7 @@ defmodule SqlDust.ScanUtils do
     {list, _} =
       sql
       |> String.split(~r/\s*,\s*/)
-      |> Enum.reduce({[], excluded}, fn(sql, {list, excluded}) ->
+      |> Enum.reduce({[], excluded}, fn sql, {list, excluded} ->
         sql = interpolate_parenthesized(sql, excluded)
         {[sql | list], excluded}
       end)
@@ -35,19 +35,21 @@ defmodule SqlDust.ScanUtils do
     if length(parenthesized) == 0 do
       {sql, patterns}
     else
-      patterns = patterns
+      patterns =
+        patterns
         |> Enum.concat(parenthesized)
-        |> List.flatten
-        |> Enum.uniq
+        |> List.flatten()
+        |> Enum.uniq()
+
       numerize_patterns(sql, patterns)
-        |> numerize_parenthesized(patterns)
+      |> numerize_parenthesized(patterns)
     end
   end
 
   defp interpolate_parenthesized(sql, patterns) do
     if String.match?(sql, ~r/\{\d+\}/) do
       interpolate_patterns(sql, patterns)
-        |> interpolate_parenthesized(patterns)
+      |> interpolate_parenthesized(patterns)
     else
       sql
     end
@@ -55,11 +57,11 @@ defmodule SqlDust.ScanUtils do
 
   def scan_strings(sql) do
     Regex.scan(~r/(["'])(?:(?=(\\?))\2.)*?\1/, sql)
-      |> Enum.reduce([], fn
-        ([""|_], strings) -> strings
-        ([match|_], strings) -> [match | strings]
-      end)
-      |> Enum.reverse()
+    |> Enum.reduce([], fn
+      ["" | _], strings -> strings
+      [match | _], strings -> [match | strings]
+    end)
+    |> Enum.reverse()
   end
 
   def scan_variables(sql) do
@@ -83,29 +85,37 @@ defmodule SqlDust.ScanUtils do
   end
 
   def scan_reserved_words(sql) do
-    Regex.scan(~r/\b(distinct|key|and|or|is|like|rlike|regexp|in|between|not|null|sounds|soundex|asc|desc|true|false)\b/i, sql)
+    Regex.scan(
+      ~r/\b(distinct|key|and|or|is|like|rlike|regexp|in|between|not|null|sounds|soundex|asc|desc|true|false)\b/i,
+      sql
+    )
   end
 
   def numerize_patterns(sql, patterns) do
     Enum.reduce(patterns, {sql, 0}, fn
-      ([regex | _] = pattern, {sql, index}) when is_list(pattern) ->
+      [regex | _] = pattern, {sql, index} when is_list(pattern) ->
         index = index + 1
         index_str = "{" <> to_string(index) <> "}"
-        {Regex.replace(regex, sql, fn(_, prefix, postfix) ->
-          prefix <> index_str <> postfix
-        end), index}
-      (pattern, {sql, index}) ->
+
+        {Regex.replace(regex, sql, fn _, prefix, postfix ->
+           prefix <> index_str <> postfix
+         end), index}
+
+      pattern, {sql, index} ->
         index = index + 1
         index_str = "{" <> to_string(index) <> "}"
+
         sql =
           if Regex.match?(~r/^\w+$/, pattern) do
             {_, regex} = Regex.compile("(^|\\b)" <> pattern <> "(\\b|$)")
-            Regex.replace(regex, sql, fn(_, prefix, postfix) ->
+
+            Regex.replace(regex, sql, fn _, prefix, postfix ->
               prefix <> index_str <> postfix
             end)
           else
             String.replace(sql, pattern, index_str)
           end
+
         {sql, index}
     end)
     |> elem(0)
@@ -114,9 +124,9 @@ defmodule SqlDust.ScanUtils do
   def interpolate_patterns(sql, patterns) do
     patterns
     |> Enum.reduce({sql, 0}, fn
-      ([_, pattern], {sql, index}) -> interpolate_pattern(pattern, sql, index)
-      ([_ | [pattern | _]], {sql, index}) -> interpolate_pattern(pattern, sql, index)
-      (pattern, {sql, index}) -> interpolate_pattern(pattern, sql, index)
+      [_, pattern], {sql, index} -> interpolate_pattern(pattern, sql, index)
+      [_ | [pattern | _]], {sql, index} -> interpolate_pattern(pattern, sql, index)
+      pattern, {sql, index} -> interpolate_pattern(pattern, sql, index)
     end)
     |> elem(0)
   end
@@ -130,30 +140,29 @@ defmodule SqlDust.ScanUtils do
     excluded = scan_strings(sql)
     sql = numerize_patterns(sql, excluded)
 
-
     {sql, values, keys} =
       @variable_regex
       |> Regex.scan(sql)
-      |> Enum.reduce({sql, [], []}, fn([match, key], {sql, values, keys}) ->
-        value = String.split(key, ".") |> Enum.reduce(variables, fn(name, variables) ->
-          MapUtils.get(variables, name)
-        end)
+      |> Enum.reduce({sql, [], []}, fn [match, key], {sql, values, keys} ->
+        value =
+          String.split(key, ".")
+          |> Enum.reduce(variables, fn name, variables ->
+            MapUtils.get(variables, name)
+          end)
 
         anonymous_key =
-          Regex.match?(~r(__\d+__), key) || (
-            String.contains?(key, "_options_") && (
-              !(initial_variables
-              |> MapUtils.get(:_options_, %{})
-              |> Map.keys
-              |> Enum.map(fn
-                (k) when is_atom(k) -> Atom.to_string(k)
-                (k) -> k
-              end)
-              |> Enum.member?(String.split(key, ".", parts: 3) |> Enum.at(1)))
-            )
-          )
+          Regex.match?(~r(__\d+__), key) ||
+            (String.contains?(key, "_options_") &&
+               !(initial_variables
+                 |> MapUtils.get(:_options_, %{})
+                 |> Map.keys()
+                 |> Enum.map(fn
+                   k when is_atom(k) -> Atom.to_string(k)
+                   k -> k
+                 end)
+                 |> Enum.member?(String.split(key, ".", parts: 3) |> Enum.at(1))))
 
-        sql = String.replace sql, match, "?", global: false
+        sql = String.replace(sql, match, "?", global: false)
         values = [value | values]
         key = if anonymous_key, do: nil, else: key
         keys = [key | keys]
@@ -164,10 +173,12 @@ defmodule SqlDust.ScanUtils do
     keys = Enum.reverse(keys)
 
     sql = interpolate_patterns(sql, excluded)
-    include_keys = Enum.any?(Map.keys(initial_variables), fn(key) ->
-      key = if is_atom(key), do: Atom.to_string(key), else: key
-      !Regex.match?(~r(__\d+__), key)
-    end)
+
+    include_keys =
+      Enum.any?(Map.keys(initial_variables), fn key ->
+        key = if is_atom(key), do: Atom.to_string(key), else: key
+        !Regex.match?(~r(__\d+__), key)
+      end)
 
     if include_keys do
       {sql, values, keys}

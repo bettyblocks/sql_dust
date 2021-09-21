@@ -3,24 +3,27 @@ defmodule SqlDustTest do
   doctest SqlDust
 
   test "only passing table" do
-    assert SqlDust.from("users") == {"""
-      SELECT `u`.*
-      FROM `users` `u`
-      """, []}
+    assert SqlDust.from("users") ==
+             {"""
+              SELECT `u`.*
+              FROM `users` `u`
+              """, []}
   end
 
   test "selecting all columns" do
-    assert SqlDust.from("users", %{select: "*"}) == {"""
-      SELECT *
-      FROM `users` `u`
-      """, []}
+    assert SqlDust.from("users", %{select: "*"}) ==
+             {"""
+              SELECT *
+              FROM `users` `u`
+              """, []}
   end
 
   test "selecting all columns of the base resource" do
-    assert SqlDust.from("users", %{select: ".*"}) == {"""
-      SELECT `u`.*
-      FROM `users` `u`
-      """, []}
+    assert SqlDust.from("users", %{select: ".*"}) ==
+             {"""
+              SELECT `u`.*
+              FROM `users` `u`
+              """, []}
   end
 
   test "selecting columns of the base resource (passing a string)" do
@@ -28,10 +31,11 @@ defmodule SqlDustTest do
       select: "id, first_name, last_name"
     }
 
-    assert SqlDust.from("users", options) == {"""
-      SELECT `u`.`id`, `u`.`first_name`, `u`.`last_name`
-      FROM `users` `u`
-      """, []}
+    assert SqlDust.from("users", options) ==
+             {"""
+              SELECT `u`.`id`, `u`.`first_name`, `u`.`last_name`
+              FROM `users` `u`
+              """, []}
   end
 
   test "selecting columns of the base resource (passing a list)" do
@@ -39,10 +43,11 @@ defmodule SqlDustTest do
       select: ["id", "first_name", "last_name"]
     }
 
-    assert SqlDust.from("users", options) == {"""
-      SELECT `u`.`id`, `u`.`first_name`, `u`.`last_name`
-      FROM `users` `u`
-      """, []}
+    assert SqlDust.from("users", options) ==
+             {"""
+              SELECT `u`.`id`, `u`.`first_name`, `u`.`last_name`
+              FROM `users` `u`
+              """, []}
   end
 
   test "selecting weirdly named columns of the base resource (passing a list)" do
@@ -51,8 +56,9 @@ defmodule SqlDustTest do
     }
 
     assert SqlDust.from("users", options) == {
-      "SELECT `u`.`id`, `u`.`first_name`, `u`.`m2`, `u`.`a`\nFROM `users` `u`\n",
-      []}
+             "SELECT `u`.`id`, `u`.`first_name`, `u`.`m2`, `u`.`a`\nFROM `users` `u`\n",
+             []
+           }
   end
 
   test "selecting weirdly named columns of the base resource (passing a map)" do
@@ -64,13 +70,13 @@ defmodule SqlDustTest do
     }
 
     assert SqlDust.from("users", options) == {
-      """
-      SELECT `u`.`id`, `u`.`name`, `u`.`m2`, `u`.`a`
-      FROM `users` `u`
-      WHERE (`u`.`name` LIKE ? OR `u`.`name` LIKE ?)
-      """,
-      ["%Paul%", "%Engel%"]
-    }
+             """
+             SELECT `u`.`id`, `u`.`name`, `u`.`m2`, `u`.`a`
+             FROM `users` `u`
+             WHERE (`u`.`name` LIKE ? OR `u`.`name` LIKE ?)
+             """,
+             ["%Paul%", "%Engel%"]
+           }
   end
 
   test "interpolating variables" do
@@ -80,13 +86,13 @@ defmodule SqlDustTest do
     }
 
     assert SqlDust.from("users", options) == {
-      """
-      SELECT `u`.`id`, CONCAT(`u`.`name`, ?)
-      FROM `users` `u`
-      """,
-      ["PostFix!"],
-      ~w(postfix)
-    }
+             """
+             SELECT `u`.`id`, CONCAT(`u`.`name`, ?)
+             FROM `users` `u`
+             """,
+             ["PostFix!"],
+             ~w(postfix)
+           }
   end
 
   test "interpolating variables respects multiple occurrences " do
@@ -97,14 +103,14 @@ defmodule SqlDustTest do
     }
 
     assert SqlDust.from("users", options) == {
-      """
-      SELECT `u`.`id`, CONCAT(`u`.`name`, ?)
-      FROM `users` `u`
-      WHERE (`u`.`foobar` LIKE ?)
-      """,
-      ["PostFix!", "PostFix!"],
-      ~w(postfix postfix)
-    }
+             """
+             SELECT `u`.`id`, CONCAT(`u`.`name`, ?)
+             FROM `users` `u`
+             WHERE (`u`.`foobar` LIKE ?)
+             """,
+             ["PostFix!", "PostFix!"],
+             ~w(postfix postfix)
+           }
   end
 
   test "interpolating variables containing nested maps" do
@@ -115,14 +121,14 @@ defmodule SqlDustTest do
     }
 
     assert SqlDust.from("users", options) == {
-      """
-      SELECT `u`.`id`, `u`.`name`
-      FROM `users` `u`
-      WHERE (`u`.`first_name` LIKE ?)
-      """,
-      ["Paul"],
-      ~w(user.first_name)
-    }
+             """
+             SELECT `u`.`id`, `u`.`name`
+             FROM `users` `u`
+             WHERE (`u`.`first_name` LIKE ?)
+             """,
+             ["Paul"],
+             ~w(user.first_name)
+           }
   end
 
   test "resulting variables respects multiple occurrences " do
@@ -133,14 +139,14 @@ defmodule SqlDustTest do
     }
 
     assert SqlDust.from("users", options) == {
-      """
-      SELECT `u`.`id`, CONCAT(`u`.`name`, ?)
-      FROM `users` `u`
-      WHERE (`u`.`foobar` LIKE ?)
-      """,
-      ["PostFix!", "PostFix!"],
-      ~w(postfix postfix)
-    }
+             """
+             SELECT `u`.`id`, CONCAT(`u`.`name`, ?)
+             FROM `users` `u`
+             WHERE (`u`.`foobar` LIKE ?)
+             """,
+             ["PostFix!", "PostFix!"],
+             ~w(postfix postfix)
+           }
   end
 
   test "using functions" do
@@ -148,24 +154,27 @@ defmodule SqlDustTest do
       select: "COUNT(*)"
     }
 
-    assert SqlDust.from("users", options) == {"""
-      SELECT COUNT(*)
-      FROM `users` `u`
-      """, []}
+    assert SqlDust.from("users", options) ==
+             {"""
+              SELECT COUNT(*)
+              FROM `users` `u`
+              """, []}
   end
 
   test "using quoted arguments" do
     options = %{
-      select: "id, CONCAT(\"First name: '\", first_name, \"' Last name: '\", last_name, \"'\"), DATE_FORMAT(updated_at, '%d-%m-%Y')"
+      select:
+        "id, CONCAT(\"First name: '\", first_name, \"' Last name: '\", last_name, \"'\"), DATE_FORMAT(updated_at, '%d-%m-%Y')"
     }
 
-    assert SqlDust.from("users", options) == {"""
-      SELECT
-        `u`.`id`,
-        CONCAT("First name: '", `u`.`first_name`, "' Last name: '", `u`.`last_name`, "'"),
-        DATE_FORMAT(`u`.`updated_at`, '%d-%m-%Y')
-      FROM `users` `u`
-      """, []}
+    assert SqlDust.from("users", options) ==
+             {"""
+              SELECT
+                `u`.`id`,
+                CONCAT("First name: '", `u`.`first_name`, "' Last name: '", `u`.`last_name`, "'"),
+                DATE_FORMAT(`u`.`updated_at`, '%d-%m-%Y')
+              FROM `users` `u`
+              """, []}
   end
 
   test "selecting columns of a 'belongs to' association" do
@@ -173,17 +182,18 @@ defmodule SqlDustTest do
       select: "id, first_name, user_role.name, department.id, department.name"
     }
 
-    assert SqlDust.from("users", options) == {"""
-      SELECT
-        `u`.`id`,
-        `u`.`first_name`,
-        `user_role`.`name`,
-        `department`.`id`,
-        `department`.`name`
-      FROM `users` `u`
-      LEFT JOIN `user_roles` `user_role` ON `user_role`.`id` = `u`.`user_role_id`
-      LEFT JOIN `departments` `department` ON `department`.`id` = `u`.`department_id`
-      """, []}
+    assert SqlDust.from("users", options) ==
+             {"""
+              SELECT
+                `u`.`id`,
+                `u`.`first_name`,
+                `user_role`.`name`,
+                `department`.`id`,
+                `department`.`name`
+              FROM `users` `u`
+              LEFT JOIN `user_roles` `user_role` ON `user_role`.`id` = `u`.`user_role_id`
+              LEFT JOIN `departments` `department` ON `department`.`id` = `u`.`department_id`
+              """, []}
   end
 
   test "extreme column and table naming with a belongs_to" do
@@ -202,17 +212,18 @@ defmodule SqlDustTest do
       }
     }
 
-    assert SqlDust.from("users", options, schema) == {"""
-      SELECT
-        `u`.`id`,
-        `u`.`first_name`,
-        `user_role`.`name`,
-        `department`.`id`,
-        `department`.`name`
-      FROM `users` `u`
-      LEFT JOIN `user_roles` `user_role` ON `user_role`.`id` = `u`.`user_role_id`
-      LEFT JOIN `super department.store` `department` ON `department`.`id` = `u`.`insane weird.stuff`
-      """, []}
+    assert SqlDust.from("users", options, schema) ==
+             {"""
+              SELECT
+                `u`.`id`,
+                `u`.`first_name`,
+                `user_role`.`name`,
+                `department`.`id`,
+                `department`.`name`
+              FROM `users` `u`
+              LEFT JOIN `user_roles` `user_role` ON `user_role`.`id` = `u`.`user_role_id`
+              LEFT JOIN `super department.store` `department` ON `department`.`id` = `u`.`insane weird.stuff`
+              """, []}
   end
 
   test "selecting columns of a nested 'belongs to' association" do
@@ -220,15 +231,16 @@ defmodule SqlDustTest do
       select: "id, first_name, company.category.name"
     }
 
-    assert SqlDust.from("users", options) == {"""
-      SELECT
-        `u`.`id`,
-        `u`.`first_name`,
-        `company.category`.`name`
-      FROM `users` `u`
-      LEFT JOIN `companies` `company` ON `company`.`id` = `u`.`company_id`
-      LEFT JOIN `categories` `company.category` ON `company.category`.`id` = `company`.`category_id`
-      """, []}
+    assert SqlDust.from("users", options) ==
+             {"""
+              SELECT
+                `u`.`id`,
+                `u`.`first_name`,
+                `company.category`.`name`
+              FROM `users` `u`
+              LEFT JOIN `companies` `company` ON `company`.`id` = `u`.`company_id`
+              LEFT JOIN `categories` `company.category` ON `company.category`.`id` = `company`.`category_id`
+              """, []}
   end
 
   test "selecting columns of a 'has many' association" do
@@ -236,15 +248,16 @@ defmodule SqlDustTest do
       select: "id, first_name, last_name, GROUP_CONCAT(orders.id)"
     }
 
-    assert SqlDust.from("users", options) == {"""
-      SELECT
-        `u`.`id`,
-        `u`.`first_name`,
-        `u`.`last_name`,
-        GROUP_CONCAT(`orders`.`id`)
-      FROM `users` `u`
-      LEFT JOIN `orders` `orders` ON `orders`.`user_id` = `u`.`id`
-      """, []}
+    assert SqlDust.from("users", options) ==
+             {"""
+              SELECT
+                `u`.`id`,
+                `u`.`first_name`,
+                `u`.`last_name`,
+                GROUP_CONCAT(`orders`.`id`)
+              FROM `users` `u`
+              LEFT JOIN `orders` `orders` ON `orders`.`user_id` = `u`.`id`
+              """, []}
   end
 
   test "selecting columns of a nested 'has many' association" do
@@ -252,22 +265,24 @@ defmodule SqlDustTest do
       select: "id, first_name, last_name, GROUP_CONCAT(company.orders.id)"
     }
 
-    assert SqlDust.from("users", options) == {"""
-      SELECT
-        `u`.`id`,
-        `u`.`first_name`,
-        `u`.`last_name`,
-        GROUP_CONCAT(`company.orders`.`id`)
-      FROM `users` `u`
-      LEFT JOIN `companies` `company` ON `company`.`id` = `u`.`company_id`
-      LEFT JOIN `orders` `company.orders` ON `company.orders`.`company_id` = `company`.`id`
-      """, []}
+    assert SqlDust.from("users", options) ==
+             {"""
+              SELECT
+                `u`.`id`,
+                `u`.`first_name`,
+                `u`.`last_name`,
+                GROUP_CONCAT(`company.orders`.`id`)
+              FROM `users` `u`
+              LEFT JOIN `companies` `company` ON `company`.`id` = `u`.`company_id`
+              LEFT JOIN `orders` `company.orders` ON `company.orders`.`company_id` = `company`.`id`
+              """, []}
   end
 
   test "selecting columns of a 'has and belongs to many' association" do
     options = %{
       select: "id, first_name, last_name, GROUP_CONCAT(skills.name)"
     }
+
     schema = %{
       users: %{
         skills: %{
@@ -276,16 +291,17 @@ defmodule SqlDustTest do
       }
     }
 
-    assert SqlDust.from("users", options, schema) == {"""
-      SELECT
-        `u`.`id`,
-        `u`.`first_name`,
-        `u`.`last_name`,
-        GROUP_CONCAT(`skills`.`name`)
-      FROM `users` `u`
-      LEFT JOIN `skills_users` `skills_bridge_table` ON `skills_bridge_table`.`user_id` = `u`.`id`
-      LEFT JOIN `skills` `skills` ON `skills`.`id` = `skills_bridge_table`.`skill_id`
-      """, []}
+    assert SqlDust.from("users", options, schema) ==
+             {"""
+              SELECT
+                `u`.`id`,
+                `u`.`first_name`,
+                `u`.`last_name`,
+                GROUP_CONCAT(`skills`.`name`)
+              FROM `users` `u`
+              LEFT JOIN `skills_users` `skills_bridge_table` ON `skills_bridge_table`.`user_id` = `u`.`id`
+              LEFT JOIN `skills` `skills` ON `skills`.`id` = `skills_bridge_table`.`skill_id`
+              """, []}
   end
 
   test "selecting columns of a 'has one' association" do
@@ -293,6 +309,7 @@ defmodule SqlDustTest do
       select: "id, name, current_price.amount",
       group_by: "id"
     }
+
     schema = %{
       products: %{
         current_price: %{
@@ -302,15 +319,16 @@ defmodule SqlDustTest do
       }
     }
 
-    assert SqlDust.from("products", options, schema) == {"""
-      SELECT
-        `p`.`id`,
-        `p`.`name`,
-        `current_price`.`amount`
-      FROM `products` `p`
-      LEFT JOIN `prices` `current_price` ON `current_price`.`product_id` = `p`.`id`
-      GROUP BY `p`.`id`
-      """, []}
+    assert SqlDust.from("products", options, schema) ==
+             {"""
+              SELECT
+                `p`.`id`,
+                `p`.`name`,
+                `current_price`.`amount`
+              FROM `products` `p`
+              LEFT JOIN `prices` `current_price` ON `current_price`.`product_id` = `p`.`id`
+              GROUP BY `p`.`id`
+              """, []}
   end
 
   test "adding join conditions for paths" do
@@ -318,6 +336,7 @@ defmodule SqlDustTest do
       select: "id, name, current_price.amount",
       join_on: "current_price.latest = 1"
     }
+
     schema = %{
       products: %{
         current_price: %{
@@ -327,20 +346,22 @@ defmodule SqlDustTest do
       }
     }
 
-    assert SqlDust.from("products", options, schema) == {"""
-      SELECT
-        `p`.`id`,
-        `p`.`name`,
-        `current_price`.`amount`
-      FROM `products` `p`
-      LEFT JOIN `prices` `current_price` ON `current_price`.`product_id` = `p`.`id` AND `current_price`.`latest` = 1
-      """, []}
+    assert SqlDust.from("products", options, schema) ==
+             {"""
+              SELECT
+                `p`.`id`,
+                `p`.`name`,
+                `current_price`.`amount`
+              FROM `products` `p`
+              LEFT JOIN `prices` `current_price` ON `current_price`.`product_id` = `p`.`id` AND `current_price`.`latest` = 1
+              """, []}
   end
 
   test "adding join conditions within the schema" do
     options = %{
       select: "id, name, current_price.amount"
     }
+
     schema = %{
       products: %{
         current_price: %{
@@ -351,14 +372,15 @@ defmodule SqlDustTest do
       }
     }
 
-    assert SqlDust.from("products", options, schema) == {"""
-      SELECT
-        `p`.`id`,
-        `p`.`name`,
-        `current_price`.`amount`
-      FROM `products` `p`
-      LEFT JOIN `prices` `current_price` ON `current_price`.`product_id` = `p`.`id` AND `current_price`.`latest` = 1
-      """, []}
+    assert SqlDust.from("products", options, schema) ==
+             {"""
+              SELECT
+                `p`.`id`,
+                `p`.`name`,
+                `current_price`.`amount`
+              FROM `products` `p`
+              LEFT JOIN `prices` `current_price` ON `current_price`.`product_id` = `p`.`id` AND `current_price`.`latest` = 1
+              """, []}
   end
 
   test "adding join conditions within the schema using variables" do
@@ -368,6 +390,7 @@ defmodule SqlDustTest do
         scope: "awesome_scope"
       }
     }
+
     schema = %{
       products: %{
         current_statistic: %{
@@ -379,23 +402,24 @@ defmodule SqlDustTest do
     }
 
     assert SqlDust.from("products", options, schema) == {
-      """
-      SELECT
-        `p`.`id`,
-        `p`.`name`,
-        `current_statistic`.`amount`
-      FROM `products` `p`
-      LEFT JOIN `statistics` `current_statistic` ON `current_statistic`.`product_id` = `p`.`id` AND `current_statistic`.`scope` = ?
-      """,
-      ["awesome_scope"],
-      ~w(scope)
-    }
+             """
+             SELECT
+               `p`.`id`,
+               `p`.`name`,
+               `current_statistic`.`amount`
+             FROM `products` `p`
+             LEFT JOIN `statistics` `current_statistic` ON `current_statistic`.`product_id` = `p`.`id` AND `current_statistic`.`scope` = ?
+             """,
+             ["awesome_scope"],
+             ~w(scope)
+           }
   end
 
   test "selecting columns of a nested 'has and belongs to many' association" do
     options = %{
       select: "id, first_name, last_name, GROUP_CONCAT(company.tags.name)"
     }
+
     schema = %{
       companies: %{
         tags: %{
@@ -404,17 +428,18 @@ defmodule SqlDustTest do
       }
     }
 
-    assert SqlDust.from("users", options, schema) == {"""
-      SELECT
-        `u`.`id`,
-        `u`.`first_name`,
-        `u`.`last_name`,
-        GROUP_CONCAT(`company.tags`.`name`)
-      FROM `users` `u`
-      LEFT JOIN `companies` `company` ON `company`.`id` = `u`.`company_id`
-      LEFT JOIN `companies_tags` `company.tags_bridge_table` ON `company.tags_bridge_table`.`company_id` = `company`.`id`
-      LEFT JOIN `tags` `company.tags` ON `company.tags`.`id` = `company.tags_bridge_table`.`tag_id`
-      """, []}
+    assert SqlDust.from("users", options, schema) ==
+             {"""
+              SELECT
+                `u`.`id`,
+                `u`.`first_name`,
+                `u`.`last_name`,
+                GROUP_CONCAT(`company.tags`.`name`)
+              FROM `users` `u`
+              LEFT JOIN `companies` `company` ON `company`.`id` = `u`.`company_id`
+              LEFT JOIN `companies_tags` `company.tags_bridge_table` ON `company.tags_bridge_table`.`company_id` = `company`.`id`
+              LEFT JOIN `tags` `company.tags` ON `company.tags`.`id` = `company.tags_bridge_table`.`tag_id`
+              """, []}
   end
 
   test "supports ['path = ? OR path = ?', criteria1, criteria2] notation (complexity 1)" do
@@ -424,13 +449,13 @@ defmodule SqlDustTest do
     }
 
     assert SqlDust.from("users", options) == {
-      """
-      SELECT `u`.`id`, `u`.`name`
-      FROM `users` `u`
-      WHERE (`u`.`name` LIKE ?)
-      """,
-      ["%Engel%"]
-    }
+             """
+             SELECT `u`.`id`, `u`.`name`
+             FROM `users` `u`
+             WHERE (`u`.`name` LIKE ?)
+             """,
+             ["%Engel%"]
+           }
   end
 
   test "supports ['path = ? OR path = ?', criteria1, criteria2] notation (complexity 2)" do
@@ -440,13 +465,13 @@ defmodule SqlDustTest do
     }
 
     assert SqlDust.from("users", options) == {
-      """
-      SELECT `u`.`id`, `u`.`name`
-      FROM `users` `u`
-      WHERE (`u`.`name` LIKE ? OR `u`.`name` LIKE ?)
-      """,
-      ["%Paul%", "%Engel%"]
-    }
+             """
+             SELECT `u`.`id`, `u`.`name`
+             FROM `users` `u`
+             WHERE (`u`.`name` LIKE ? OR `u`.`name` LIKE ?)
+             """,
+             ["%Paul%", "%Engel%"]
+           }
   end
 
   test "supports ['path = ? OR path = ?', criteria1, criteria2] notation (complexity 3)" do
@@ -461,16 +486,16 @@ defmodule SqlDustTest do
     }
 
     assert SqlDust.from("users", options) == {
-      """
-      SELECT `u`.`id`, `u`.`name`
-      FROM `users` `u`
-      LEFT JOIN `addresses` `address` ON `address`.`id` = `u`.`address_id`
-      LEFT JOIN `subscriptions` `subscription` ON `subscription`.`id` = `u`.`subscription_id`
-      LEFT JOIN `tags` `tags` ON `tags`.`user_id` = `u`.`id`
-      WHERE (`u`.`name` LIKE ? OR `u`.`name` LIKE ?) AND (`u`.`company_id` = 1982) AND (`address`.`city` = ? AND `subscription`.`active` = ?) AND (`tags`.`name` IN (?))
-      """,
-      ["%Paul%", "%Engel%", "Amsterdam", true, [1, 8, 1982]]
-    }
+             """
+             SELECT `u`.`id`, `u`.`name`
+             FROM `users` `u`
+             LEFT JOIN `addresses` `address` ON `address`.`id` = `u`.`address_id`
+             LEFT JOIN `subscriptions` `subscription` ON `subscription`.`id` = `u`.`subscription_id`
+             LEFT JOIN `tags` `tags` ON `tags`.`user_id` = `u`.`id`
+             WHERE (`u`.`name` LIKE ? OR `u`.`name` LIKE ?) AND (`u`.`company_id` = 1982) AND (`address`.`city` = ? AND `subscription`.`active` = ?) AND (`tags`.`name` IN (?))
+             """,
+             ["%Paul%", "%Engel%", "Amsterdam", true, [1, 8, 1982]]
+           }
   end
 
   test "overriding the resource table name" do
@@ -480,56 +505,62 @@ defmodule SqlDustTest do
       }
     }
 
-    assert SqlDust.from("resellers", %{}, schema) == {"""
-      SELECT `r`.*
-      FROM `companies` `r`
-      """, []}
+    assert SqlDust.from("resellers", %{}, schema) ==
+             {"""
+              SELECT `r`.*
+              FROM `companies` `r`
+              """, []}
   end
 
   test "overriding the resource of an association" do
     options = %{
       select: ["id", "description", "CONCAT(assignee.first_name, ' ', assignee.last_name)"]
     }
+
     schema = %{
       issues: %{
         assignee: %{resource: "users"}
       }
     }
 
-    assert SqlDust.from("issues", options, schema) == {"""
-      SELECT
-        `i`.`id`,
-        `i`.`description`,
-        CONCAT(`assignee`.`first_name`, ' ', `assignee`.`last_name`)
-      FROM `issues` `i`
-      LEFT JOIN `users` `assignee` ON `assignee`.`id` = `i`.`assignee_id`
-      """, []}
+    assert SqlDust.from("issues", options, schema) ==
+             {"""
+              SELECT
+                `i`.`id`,
+                `i`.`description`,
+                CONCAT(`assignee`.`first_name`, ' ', `assignee`.`last_name`)
+              FROM `issues` `i`
+              LEFT JOIN `users` `assignee` ON `assignee`.`id` = `i`.`assignee_id`
+              """, []}
   end
 
   test "overriding the table name of an association" do
     options = %{
       select: ["id", "description", "CONCAT(assignee.first_name, ' ', assignee.last_name)"]
     }
+
     schema = %{
       issues: %{
         assignee: %{table_name: "users"}
       }
     }
 
-    assert SqlDust.from("issues", options, schema) == {"""
-      SELECT
-        `i`.`id`,
-        `i`.`description`,
-        CONCAT(`assignee`.`first_name`, ' ', `assignee`.`last_name`)
-      FROM `issues` `i`
-      LEFT JOIN `users` `assignee` ON `assignee`.`id` = `i`.`assignee_id`
-      """, []}
+    assert SqlDust.from("issues", options, schema) ==
+             {"""
+              SELECT
+                `i`.`id`,
+                `i`.`description`,
+                CONCAT(`assignee`.`first_name`, ' ', `assignee`.`last_name`)
+              FROM `issues` `i`
+              LEFT JOIN `users` `assignee` ON `assignee`.`id` = `i`.`assignee_id`
+              """, []}
   end
 
   test "overriding the bridge table of a has and belongs to many association" do
     options = %{
       select: "id, first_name, last_name, GROUP_CONCAT(skills.name)"
     }
+
     schema = %{
       users: %{
         skills: %{
@@ -540,22 +571,24 @@ defmodule SqlDustTest do
       }
     }
 
-    assert SqlDust.from("users", options, schema) == {"""
-      SELECT
-        `u`.`id`,
-        `u`.`first_name`,
-        `u`.`last_name`,
-        GROUP_CONCAT(`skills`.`name`)
-      FROM `users` `u`
-      LEFT JOIN `skill_set` `skills_bridge_table` ON `skills_bridge_table`.`person_id` = `u`.`id`
-      LEFT JOIN `skills` `skills` ON `skills`.`id` = `skills_bridge_table`.`skill_id`
-      """, []}
+    assert SqlDust.from("users", options, schema) ==
+             {"""
+              SELECT
+                `u`.`id`,
+                `u`.`first_name`,
+                `u`.`last_name`,
+                GROUP_CONCAT(`skills`.`name`)
+              FROM `users` `u`
+              LEFT JOIN `skill_set` `skills_bridge_table` ON `skills_bridge_table`.`person_id` = `u`.`id`
+              LEFT JOIN `skills` `skills` ON `skills`.`id` = `skills_bridge_table`.`skill_id`
+              """, []}
   end
 
   test "overriding the bridge table of a has and belongs to many with extreme table names in association" do
     options = %{
       select: "id, first_name, last_name, GROUP_CONCAT(skills.name)"
     }
+
     schema = %{
       users: %{
         skills: %{
@@ -566,16 +599,17 @@ defmodule SqlDustTest do
       }
     }
 
-    assert SqlDust.from("users", options, schema) == {"""
-      SELECT
-        `u`.`id`,
-        `u`.`first_name`,
-        `u`.`last_name`,
-        GROUP_CONCAT(`skills`.`name`)
-      FROM `users` `u`
-      LEFT JOIN `test skill_set.awesome` `skills_bridge_table` ON `skills_bridge_table`.`strange.person_id` = `u`.`id`
-      LEFT JOIN `skills` `skills` ON `skills`.`id` = `skills_bridge_table`.`skill_id`
-      """, []}
+    assert SqlDust.from("users", options, schema) ==
+             {"""
+              SELECT
+                `u`.`id`,
+                `u`.`first_name`,
+                `u`.`last_name`,
+                GROUP_CONCAT(`skills`.`name`)
+              FROM `users` `u`
+              LEFT JOIN `test skill_set.awesome` `skills_bridge_table` ON `skills_bridge_table`.`strange.person_id` = `u`.`id`
+              LEFT JOIN `skills` `skills` ON `skills`.`id` = `skills_bridge_table`.`skill_id`
+              """, []}
   end
 
   test "grouping the query result" do
@@ -584,12 +618,13 @@ defmodule SqlDustTest do
       group_by: "category.name"
     }
 
-    assert SqlDust.from("users", options) == {"""
-      SELECT COUNT(*)
-      FROM `users` `u`
-      LEFT JOIN `categories` `category` ON `category`.`id` = `u`.`category_id`
-      GROUP BY `category`.`name`
-      """, []}
+    assert SqlDust.from("users", options) ==
+             {"""
+              SELECT COUNT(*)
+              FROM `users` `u`
+              LEFT JOIN `categories` `category` ON `category`.`id` = `u`.`category_id`
+              GROUP BY `category`.`name`
+              """, []}
   end
 
   test "ordering the query result (passing a string)" do
@@ -598,11 +633,12 @@ defmodule SqlDustTest do
       order_by: "last_name ASC, first_name"
     }
 
-    assert SqlDust.from("users", options) == {"""
-      SELECT `u`.*
-      FROM `users` `u`
-      ORDER BY `u`.`last_name` ASC, `u`.`first_name`
-      """, []}
+    assert SqlDust.from("users", options) ==
+             {"""
+              SELECT `u`.*
+              FROM `users` `u`
+              ORDER BY `u`.`last_name` ASC, `u`.`first_name`
+              """, []}
   end
 
   test "ordering the query result (passing a list)" do
@@ -611,11 +647,12 @@ defmodule SqlDustTest do
       order_by: ["last_name ASC", "first_name"]
     }
 
-    assert SqlDust.from("users", options) == {"""
-      SELECT `u`.*
-      FROM `users` `u`
-      ORDER BY `u`.`last_name` ASC, `u`.`first_name`
-      """, []}
+    assert SqlDust.from("users", options) ==
+             {"""
+              SELECT `u`.*
+              FROM `users` `u`
+              ORDER BY `u`.`last_name` ASC, `u`.`first_name`
+              """, []}
   end
 
   test "limiting the query result" do
@@ -623,11 +660,12 @@ defmodule SqlDustTest do
       limit: 20
     }
 
-    assert SqlDust.from("users", options) == {"""
-      SELECT `u`.*
-      FROM `users` `u`
-      LIMIT ?
-      """, [20]}
+    assert SqlDust.from("users", options) ==
+             {"""
+              SELECT `u`.*
+              FROM `users` `u`
+              LIMIT ?
+              """, [20]}
   end
 
   test "limiting the query result by passing the limit in variables[:_options_][:limit]" do
@@ -640,13 +678,12 @@ defmodule SqlDustTest do
       }
     }
 
-    assert SqlDust.from("users", options) == {"""
-      SELECT `u`.*
-      FROM `users` `u`
-      LIMIT ?
-      """,
-      [20],
-      ~w(_options_.limit)}
+    assert SqlDust.from("users", options) ==
+             {"""
+              SELECT `u`.*
+              FROM `users` `u`
+              LIMIT ?
+              """, [20], ~w(_options_.limit)}
   end
 
   test "adding an offset to the query result" do
@@ -655,12 +692,13 @@ defmodule SqlDustTest do
       offset: 20
     }
 
-    assert SqlDust.from("users", options) == {"""
-      SELECT `u`.*
-      FROM `users` `u`
-      LIMIT ?
-      OFFSET ?
-      """, [10, 20]}
+    assert SqlDust.from("users", options) ==
+             {"""
+              SELECT `u`.*
+              FROM `users` `u`
+              LIMIT ?
+              OFFSET ?
+              """, [10, 20]}
   end
 
   test "adding an offset to the query result by passing the offset in variables[:_options_][:offset]" do
@@ -674,79 +712,84 @@ defmodule SqlDustTest do
       }
     }
 
-    assert SqlDust.from("users", options) == {"""
-      SELECT `u`.*
-      FROM `users` `u`
-      LIMIT ?
-      OFFSET ?
-      """,
-      [10, 20],
-      [nil, "_options_.offset"]}
+    assert SqlDust.from("users", options) ==
+             {"""
+              SELECT `u`.*
+              FROM `users` `u`
+              LIMIT ?
+              OFFSET ?
+              """, [10, 20], [nil, "_options_.offset"]}
   end
 
   test "quoting SELECT statement aliases" do
     options = %{
-      select: "id AS foo.bar",
+      select: "id AS foo.bar"
     }
 
-    assert SqlDust.from("users", options) == {"""
-      SELECT `u`.`id` AS `foo.bar`
-      FROM `users` `u`
-      """, []}
+    assert SqlDust.from("users", options) ==
+             {"""
+              SELECT `u`.`id` AS `foo.bar`
+              FROM `users` `u`
+              """, []}
   end
 
   test "putting quoted SELECT statement aliases either in the WHERE or HAVING statement" do
     options = %{
-      select: "id AS id, CONCAT(first_name, ' ', last_name) AS name, company.name AS company.name",
+      select:
+        "id AS id, CONCAT(first_name, ' ', last_name) AS name, company.name AS company.name",
       where: ["id <= 1982", "name LIKE '%Engel%'", "company.name LIKE '%Inc%'"]
     }
 
-    assert SqlDust.from("users", options) == {"""
-      SELECT
-        `u`.`id` AS `id`,
-        CONCAT(`u`.`first_name`, ' ', `u`.`last_name`) AS `name`,
-        `company`.`name` AS `company.name`
-      FROM `users` `u`
-      LEFT JOIN `companies` `company` ON `company`.`id` = `u`.`company_id`
-      WHERE (`u`.`id` <= 1982) AND (`company`.`name` LIKE '%Inc%')
-      HAVING (`name` LIKE '%Engel%')
-      """, []}
+    assert SqlDust.from("users", options) ==
+             {"""
+              SELECT
+                `u`.`id` AS `id`,
+                CONCAT(`u`.`first_name`, ' ', `u`.`last_name`) AS `name`,
+                `company`.`name` AS `company.name`
+              FROM `users` `u`
+              LEFT JOIN `companies` `company` ON `company`.`id` = `u`.`company_id`
+              WHERE (`u`.`id` <= 1982) AND (`company`.`name` LIKE '%Inc%')
+              HAVING (`name` LIKE '%Engel%')
+              """, []}
   end
 
   test "respecting preserved word NULL" do
     options = %{
-      where: "name IS NOT NULL",
+      where: "name IS NOT NULL"
     }
 
-    assert SqlDust.from("users", options) == {"""
-      SELECT `u`.*
-      FROM `users` `u`
-      WHERE (`u`.`name` IS NOT NULL)
-      """, []}
+    assert SqlDust.from("users", options) ==
+             {"""
+              SELECT `u`.*
+              FROM `users` `u`
+              WHERE (`u`.`name` IS NOT NULL)
+              """, []}
   end
 
   test "respecting booleans" do
     options = %{
-      where: "is_admin = true OR FALSE",
+      where: "is_admin = true OR FALSE"
     }
 
-    assert SqlDust.from("users", options) == {"""
-      SELECT `u`.*
-      FROM `users` `u`
-      WHERE (`u`.`is_admin` = true OR FALSE)
-      """, []}
+    assert SqlDust.from("users", options) ==
+             {"""
+              SELECT `u`.*
+              FROM `users` `u`
+              WHERE (`u`.`is_admin` = true OR FALSE)
+              """, []}
   end
 
   test "handling '' within WHERE statements" do
     options = %{
-      where: "name = ''",
+      where: "name = ''"
     }
 
-    assert SqlDust.from("users", options) == {"""
-      SELECT `u`.*
-      FROM `users` `u`
-      WHERE (`u`.`name` = '')
-      """, []}
+    assert SqlDust.from("users", options) ==
+             {"""
+              SELECT `u`.*
+              FROM `users` `u`
+              WHERE (`u`.`name` = '')
+              """, []}
   end
 
   test "not auto-grouping base records at default" do
@@ -755,13 +798,14 @@ defmodule SqlDustTest do
       where: "organization.addresses.street LIKE '%Broad%'"
     }
 
-    assert SqlDust.from("users", options) == {"""
-      SELECT `u`.`id`
-      FROM `users` `u`
-      LEFT JOIN `organizations` `organization` ON `organization`.`id` = `u`.`organization_id`
-      LEFT JOIN `addresses` `organization.addresses` ON `organization.addresses`.`organization_id` = `organization`.`id`
-      WHERE (`organization.addresses`.`street` LIKE '%Broad%')
-      """, []}
+    assert SqlDust.from("users", options) ==
+             {"""
+              SELECT `u`.`id`
+              FROM `users` `u`
+              LEFT JOIN `organizations` `organization` ON `organization`.`id` = `u`.`organization_id`
+              LEFT JOIN `addresses` `organization.addresses` ON `organization.addresses`.`organization_id` = `organization`.`id`
+              WHERE (`organization.addresses`.`street` LIKE '%Broad%')
+              """, []}
   end
 
   test "being able to ensuring unique base records for has_many associations" do
@@ -771,14 +815,15 @@ defmodule SqlDustTest do
       unique: true
     }
 
-    assert SqlDust.from("users", options) == {"""
-      SELECT `u`.`id`
-      FROM `users` `u`
-      LEFT JOIN `organizations` `organization` ON `organization`.`id` = `u`.`organization_id`
-      LEFT JOIN `addresses` `organization.addresses` ON `organization.addresses`.`organization_id` = `organization`.`id`
-      WHERE (`organization.addresses`.`street` LIKE '%Broad%')
-      GROUP BY `u`.`id`
-      """, []}
+    assert SqlDust.from("users", options) ==
+             {"""
+              SELECT `u`.`id`
+              FROM `users` `u`
+              LEFT JOIN `organizations` `organization` ON `organization`.`id` = `u`.`organization_id`
+              LEFT JOIN `addresses` `organization.addresses` ON `organization.addresses`.`organization_id` = `organization`.`id`
+              WHERE (`organization.addresses`.`street` LIKE '%Broad%')
+              GROUP BY `u`.`id`
+              """, []}
   end
 
   test "extreme column and table naming with has_many" do
@@ -799,14 +844,15 @@ defmodule SqlDustTest do
       }
     }
 
-    assert SqlDust.from("users", options, schema) == {"""
-      SELECT `u`.`id`
-      FROM `users` `u`
-      LEFT JOIN `organizations` `organization` ON `organization`.`id` = `u`.`organization_id`
-      LEFT JOIN `some address.table` `organization.addresses` ON `organization.addresses`.`sql dust.is.cool` = `organization`.`id`
-      WHERE (`organization.addresses`.`street` LIKE '%Broad%')
-      GROUP BY `u`.`id`
-      """, []}
+    assert SqlDust.from("users", options, schema) ==
+             {"""
+              SELECT `u`.`id`
+              FROM `users` `u`
+              LEFT JOIN `organizations` `organization` ON `organization`.`id` = `u`.`organization_id`
+              LEFT JOIN `some address.table` `organization.addresses` ON `organization.addresses`.`sql dust.is.cool` = `organization`.`id`
+              WHERE (`organization.addresses`.`street` LIKE '%Broad%')
+              GROUP BY `u`.`id`
+              """, []}
   end
 
   test "being able to ensuring unique base records for has_one associations" do
@@ -824,13 +870,14 @@ defmodule SqlDustTest do
       }
     }
 
-    assert SqlDust.from("users", options, schema) == {"""
-      SELECT `u`.`id`
-      FROM `users` `u`
-      LEFT JOIN `organizations` `organization` ON `organization`.`user_id` = `u`.`id`
-      WHERE (`organization`.`name` LIKE '%Broad%')
-      GROUP BY `u`.`id`
-      """, []}
+    assert SqlDust.from("users", options, schema) ==
+             {"""
+              SELECT `u`.`id`
+              FROM `users` `u`
+              LEFT JOIN `organizations` `organization` ON `organization`.`user_id` = `u`.`id`
+              WHERE (`organization`.`name` LIKE '%Broad%')
+              GROUP BY `u`.`id`
+              """, []}
   end
 
   test "extreme column and table naming with a has_one" do
@@ -852,13 +899,14 @@ defmodule SqlDustTest do
       }
     }
 
-    assert SqlDust.from("users", options, schema) == {"""
-      SELECT `u`.`id`
-      FROM `users` `u`
-      LEFT JOIN `organization hallo.test` `organization` ON `organization`.`user.organization column` = `u`.`id`
-      WHERE (`organization`.`name` LIKE '%Broad%')
-      GROUP BY `u`.`id`
-      """, []}
+    assert SqlDust.from("users", options, schema) ==
+             {"""
+              SELECT `u`.`id`
+              FROM `users` `u`
+              LEFT JOIN `organization hallo.test` `organization` ON `organization`.`user.organization column` = `u`.`id`
+              WHERE (`organization`.`name` LIKE '%Broad%')
+              GROUP BY `u`.`id`
+              """, []}
   end
 
   test "being able to ensuring unique base records for has_and_belongs_to_many associations" do
@@ -876,24 +924,27 @@ defmodule SqlDustTest do
       }
     }
 
-    assert SqlDust.from("users", options, schema) == {"""
-      SELECT `u`.`id`
-      FROM `users` `u`
-      LEFT JOIN `skills_users` `skills_bridge_table` ON `skills_bridge_table`.`user_id` = `u`.`id`
-      LEFT JOIN `skills` `skills` ON `skills`.`id` = `skills_bridge_table`.`skill_id`
-      WHERE (`skills`.`name` LIKE '%cool%')
-      GROUP BY `u`.`id`
-      """, []}
+    assert SqlDust.from("users", options, schema) ==
+             {"""
+              SELECT `u`.`id`
+              FROM `users` `u`
+              LEFT JOIN `skills_users` `skills_bridge_table` ON `skills_bridge_table`.`user_id` = `u`.`id`
+              LEFT JOIN `skills` `skills` ON `skills`.`id` = `skills_bridge_table`.`skill_id`
+              WHERE (`skills`.`name` LIKE '%cool%')
+              GROUP BY `u`.`id`
+              """, []}
   end
 
   test "DirectiveRecord example 1 (with additional WHERE statements)" do
     options = %{
-      select: "id, name, COUNT(orders.id) AS order.count, GROUP_CONCAT(DISTINCT tags.name) AS tags, foo.tags",
+      select:
+        "id, name, COUNT(orders.id) AS order.count, GROUP_CONCAT(DISTINCT tags.name) AS tags, foo.tags",
       group_by: "id",
       where: ["name LIKE '%Paul%'", "order.count > 5", "foo.tags = 1"],
       order_by: "COUNT(DISTINCT tags.id) DESC",
       limit: 5
     }
+
     schema = %{
       customers: %{
         tags: %{
@@ -902,30 +953,32 @@ defmodule SqlDustTest do
       }
     }
 
-    assert SqlDust.from("customers", options, schema) == {"""
-      SELECT
-        `c`.`id`,
-        `c`.`name`,
-        COUNT(`orders`.`id`) AS `order.count`,
-        GROUP_CONCAT(DISTINCT `tags`.`name`) AS `tags`,
-        `foo`.`tags`
-      FROM `customers` `c`
-      LEFT JOIN `orders` `orders` ON `orders`.`customer_id` = `c`.`id`
-      LEFT JOIN `customers_tags` `tags_bridge_table` ON `tags_bridge_table`.`customer_id` = `c`.`id`
-      LEFT JOIN `tags` `tags` ON `tags`.`id` = `tags_bridge_table`.`tag_id`
-      LEFT JOIN `foos` `foo` ON `foo`.`id` = `c`.`foo_id`
-      WHERE (`c`.`name` LIKE '%Paul%') AND (`foo`.`tags` = 1)
-      GROUP BY `c`.`id`
-      HAVING (`order.count` > 5)
-      ORDER BY COUNT(DISTINCT `tags`.`id`) DESC
-      LIMIT ?
-      """, [5]}
+    assert SqlDust.from("customers", options, schema) ==
+             {"""
+              SELECT
+                `c`.`id`,
+                `c`.`name`,
+                COUNT(`orders`.`id`) AS `order.count`,
+                GROUP_CONCAT(DISTINCT `tags`.`name`) AS `tags`,
+                `foo`.`tags`
+              FROM `customers` `c`
+              LEFT JOIN `orders` `orders` ON `orders`.`customer_id` = `c`.`id`
+              LEFT JOIN `customers_tags` `tags_bridge_table` ON `tags_bridge_table`.`customer_id` = `c`.`id`
+              LEFT JOIN `tags` `tags` ON `tags`.`id` = `tags_bridge_table`.`tag_id`
+              LEFT JOIN `foos` `foo` ON `foo`.`id` = `c`.`foo_id`
+              WHERE (`c`.`name` LIKE '%Paul%') AND (`foo`.`tags` = 1)
+              GROUP BY `c`.`id`
+              HAVING (`order.count` > 5)
+              ORDER BY COUNT(DISTINCT `tags`.`id`) DESC
+              LIMIT ?
+              """, [5]}
   end
 
   test "DirectiveRecord example 3" do
     options = %{
       where: "tags.name LIKE '%gifts%'"
     }
+
     schema = %{
       customers: %{
         tags: %{
@@ -934,13 +987,14 @@ defmodule SqlDustTest do
       }
     }
 
-    assert SqlDust.from("customers", options, schema) == {"""
-      SELECT `c`.*
-      FROM `customers` `c`
-      LEFT JOIN `customers_tags` `tags_bridge_table` ON `tags_bridge_table`.`customer_id` = `c`.`id`
-      LEFT JOIN `tags` `tags` ON `tags`.`id` = `tags_bridge_table`.`tag_id`
-      WHERE (`tags`.`name` LIKE '%gifts%')
-      """, []}
+    assert SqlDust.from("customers", options, schema) ==
+             {"""
+              SELECT `c`.*
+              FROM `customers` `c`
+              LEFT JOIN `customers_tags` `tags_bridge_table` ON `tags_bridge_table`.`customer_id` = `c`.`id`
+              LEFT JOIN `tags` `tags` ON `tags`.`id` = `tags_bridge_table`.`tag_id`
+              WHERE (`tags`.`name` LIKE '%gifts%')
+              """, []}
   end
 
   test "DirectiveRecord example 5" do
@@ -949,6 +1003,7 @@ defmodule SqlDustTest do
       where: "tags.name LIKE '%gifts%'",
       group_by: "tags.id"
     }
+
     schema = %{
       customers: %{
         tags: %{
@@ -957,14 +1012,15 @@ defmodule SqlDustTest do
       }
     }
 
-    assert SqlDust.from("customers", options, schema) == {"""
-      SELECT `tags`.*
-      FROM `customers` `c`
-      LEFT JOIN `customers_tags` `tags_bridge_table` ON `tags_bridge_table`.`customer_id` = `c`.`id`
-      LEFT JOIN `tags` `tags` ON `tags`.`id` = `tags_bridge_table`.`tag_id`
-      WHERE (`tags`.`name` LIKE '%gifts%')
-      GROUP BY `tags`.`id`
-      """, []}
+    assert SqlDust.from("customers", options, schema) ==
+             {"""
+              SELECT `tags`.*
+              FROM `customers` `c`
+              LEFT JOIN `customers_tags` `tags_bridge_table` ON `tags_bridge_table`.`customer_id` = `c`.`id`
+              LEFT JOIN `tags` `tags` ON `tags`.`id` = `tags_bridge_table`.`tag_id`
+              WHERE (`tags`.`name` LIKE '%gifts%')
+              GROUP BY `tags`.`id`
+              """, []}
   end
 
   test "DirectiveRecord example 6" do
@@ -974,16 +1030,17 @@ defmodule SqlDustTest do
       group_by: "id"
     }
 
-    assert SqlDust.from("customers", options) == {"""
-      SELECT
-        `c`.`id`,
-        `c`.`name`,
-        COUNT(`orders`.`id`) AS `order_count`
-      FROM `customers` `c`
-      LEFT JOIN `orders` `orders` ON `orders`.`customer_id` = `c`.`id`
-      GROUP BY `c`.`id`
-      HAVING (`order_count` > 3)
-      """, []}
+    assert SqlDust.from("customers", options) ==
+             {"""
+              SELECT
+                `c`.`id`,
+                `c`.`name`,
+                COUNT(`orders`.`id`) AS `order_count`
+              FROM `customers` `c`
+              LEFT JOIN `orders` `orders` ON `orders`.`customer_id` = `c`.`id`
+              GROUP BY `c`.`id`
+              HAVING (`order_count` > 3)
+              """, []}
   end
 
   test "prepending path aliases in the HAVING statement while respecting SELECT statement aliases" do
@@ -993,12 +1050,13 @@ defmodule SqlDustTest do
       order_by: "description desc"
     }
 
-    assert SqlDust.from("users", options) == {"""
-      SELECT `u`.`id` AS `identifier`
-      FROM `users` `u`
-      HAVING (`identifier` > 0 AND `u`.`id` != 2)
-      ORDER BY `u`.`description` desc
-      """, []}
+    assert SqlDust.from("users", options) ==
+             {"""
+              SELECT `u`.`id` AS `identifier`
+              FROM `users` `u`
+              HAVING (`identifier` > 0 AND `u`.`id` != 2)
+              ORDER BY `u`.`description` desc
+              """, []}
   end
 
   test "downcasing base table alias" do
@@ -1008,24 +1066,25 @@ defmodule SqlDustTest do
       }
     }
 
-    assert SqlDust.from("User", %{}, schema) == {"""
-      SELECT `u`.*
-      FROM `people` `u`
-      """, []}
+    assert SqlDust.from("User", %{}, schema) ==
+             {"""
+              SELECT `u`.*
+              FROM `people` `u`
+              """, []}
   end
 
   test "ignore WHERE with empty statement" do
-    assert SqlDust.from("users", %{where: [""]}) == {"""
-      SELECT `u`.*
-      FROM `users` `u`
-      """, []
-    }
+    assert SqlDust.from("users", %{where: [""]}) ==
+             {"""
+              SELECT `u`.*
+              FROM `users` `u`
+              """, []}
 
-    assert SqlDust.from("users", %{where: ["", "id = 1", "    "]}) == {"""
-      SELECT `u`.*
-      FROM `users` `u`
-      WHERE (`u`.`id` = 1)
-      """, []
-    }
+    assert SqlDust.from("users", %{where: ["", "id = 1", "    "]}) ==
+             {"""
+              SELECT `u`.*
+              FROM `users` `u`
+              WHERE (`u`.`id` = 1)
+              """, []}
   end
 end
