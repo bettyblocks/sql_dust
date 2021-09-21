@@ -192,11 +192,11 @@ defmodule SqlDustTest do
     }
 
     schema = %{
-      "departments": %{
+      departments: %{
         table_name: "super department.store"
       },
-      "users": %{
-        "department": %{
+      users: %{
+        department: %{
           foreign_key: "insane weird.stuff"
         }
       }
@@ -269,8 +269,8 @@ defmodule SqlDustTest do
       select: "id, first_name, last_name, GROUP_CONCAT(skills.name)"
     }
     schema = %{
-      "users": %{
-        "skills": %{
+      users: %{
+        skills: %{
           cardinality: :has_and_belongs_to_many
         }
       }
@@ -294,7 +294,7 @@ defmodule SqlDustTest do
       group_by: "id"
     }
     schema = %{
-      "products": %{
+      products: %{
         current_price: %{
           cardinality: :has_one,
           resource: "prices"
@@ -319,7 +319,7 @@ defmodule SqlDustTest do
       join_on: "current_price.latest = 1"
     }
     schema = %{
-      "products": %{
+      products: %{
         current_price: %{
           cardinality: :has_one,
           resource: "prices"
@@ -342,7 +342,7 @@ defmodule SqlDustTest do
       select: "id, name, current_price.amount"
     }
     schema = %{
-      "products": %{
+      products: %{
         current_price: %{
           cardinality: :has_one,
           resource: "prices",
@@ -365,11 +365,11 @@ defmodule SqlDustTest do
     options = %{
       select: "id, name, current_statistic.amount",
       variables: %{
-        "scope": "awesome_scope"
+        scope: "awesome_scope"
       }
     }
     schema = %{
-      "products": %{
+      products: %{
         current_statistic: %{
           cardinality: :has_one,
           resource: "statistics",
@@ -397,7 +397,7 @@ defmodule SqlDustTest do
       select: "id, first_name, last_name, GROUP_CONCAT(company.tags.name)"
     }
     schema = %{
-      "companies": %{
+      companies: %{
         tags: %{
           cardinality: :has_and_belongs_to_many
         }
@@ -475,8 +475,8 @@ defmodule SqlDustTest do
 
   test "overriding the resource table name" do
     schema = %{
-      "resellers": %{
-        "table_name": "companies"
+      resellers: %{
+        table_name: "companies"
       }
     }
 
@@ -491,7 +491,7 @@ defmodule SqlDustTest do
       select: ["id", "description", "CONCAT(assignee.first_name, ' ', assignee.last_name)"]
     }
     schema = %{
-      "issues": %{
+      issues: %{
         assignee: %{resource: "users"}
       }
     }
@@ -511,7 +511,7 @@ defmodule SqlDustTest do
       select: ["id", "description", "CONCAT(assignee.first_name, ' ', assignee.last_name)"]
     }
     schema = %{
-      "issues": %{
+      issues: %{
         assignee: %{table_name: "users"}
       }
     }
@@ -531,8 +531,8 @@ defmodule SqlDustTest do
       select: "id, first_name, last_name, GROUP_CONCAT(skills.name)"
     }
     schema = %{
-      "users": %{
-        "skills": %{
+      users: %{
+        skills: %{
           cardinality: :has_and_belongs_to_many,
           bridge_table: "skill_set",
           foreign_key: "person_id"
@@ -557,8 +557,8 @@ defmodule SqlDustTest do
       select: "id, first_name, last_name, GROUP_CONCAT(skills.name)"
     }
     schema = %{
-      "users": %{
-        "skills": %{
+      users: %{
+        skills: %{
           cardinality: :has_and_belongs_to_many,
           bridge_table: "test skill_set.awesome",
           foreign_key: "strange.person_id"
@@ -789,12 +789,12 @@ defmodule SqlDustTest do
     }
 
     schema = %{
-      "organizations": %{
-        "addresses": %{
+      organizations: %{
+        addresses: %{
           foreign_key: "sql dust.is.cool"
         }
       },
-      "addresses": %{
+      addresses: %{
         table_name: "some address.table"
       }
     }
@@ -817,7 +817,7 @@ defmodule SqlDustTest do
     }
 
     schema = %{
-      "users": %{
+      users: %{
         organization: %{
           cardinality: :has_one
         }
@@ -841,13 +841,13 @@ defmodule SqlDustTest do
     }
 
     schema = %{
-      "users": %{
+      users: %{
         organization: %{
           cardinality: :has_one,
           foreign_key: "user.organization column"
         }
       },
-      "organizations": %{
+      organizations: %{
         table_name: "organization hallo.test"
       }
     }
@@ -869,7 +869,7 @@ defmodule SqlDustTest do
     }
 
     schema = %{
-      "users": %{
+      users: %{
         skills: %{
           cardinality: :has_and_belongs_to_many
         }
@@ -927,9 +927,9 @@ defmodule SqlDustTest do
       where: "tags.name LIKE '%gifts%'"
     }
     schema = %{
-      "customers": %{
+      customers: %{
         tags: %{
-          "cardinality": :has_and_belongs_to_many
+          cardinality: :has_and_belongs_to_many
         }
       }
     }
@@ -952,7 +952,7 @@ defmodule SqlDustTest do
     schema = %{
       customers: %{
         tags: %{
-          "cardinality": :has_and_belongs_to_many
+          cardinality: :has_and_belongs_to_many
         }
       }
     }

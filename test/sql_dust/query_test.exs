@@ -326,8 +326,8 @@ defmodule SqlDust.QueryTest do
 
   test "schema returns SqlDust containing :schema option" do
     query_dust = schema(%{
-      "users": %{
-        "skills": %{
+      users: %{
+        skills: %{
           cardinality: :has_and_belongs_to_many
         }
       }
@@ -347,8 +347,8 @@ defmodule SqlDust.QueryTest do
   test "schema merges argument to existing :schema option" do
     query_dust = schema(
         %{
-          "users": %{
-            "skills": %{
+          users: %{
+            skills: %{
               cardinality: :has_and_belongs_to_many
             }
           }
@@ -356,12 +356,12 @@ defmodule SqlDust.QueryTest do
       )
       |> schema(
         %{
-          "users": %{
-            "skills": %{
-              "primary_key": "identifier"
+          users: %{
+            skills: %{
+              primary_key: "identifier"
             }
           },
-          "relations": %{
+          relations: %{
             table_name: "users"
           }
         }
@@ -454,8 +454,8 @@ defmodule SqlDust.QueryTest do
       |> limit(20)
       |> schema(
         %{
-          users: %{"table_name": "people"},
-          companies: %{"address": %{cardinality: :has_one}}
+          users: %{table_name: "people"},
+          companies: %{address: %{cardinality: :has_one}}
         }
       )
       |> unique
